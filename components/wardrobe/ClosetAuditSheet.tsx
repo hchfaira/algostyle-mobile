@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
 import { CATEGORY_ICONS } from './constants';
 import type { FlaggedItem } from '../../types';
 

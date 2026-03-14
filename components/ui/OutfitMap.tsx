@@ -2,9 +2,11 @@
  * OutfitMap — Native implementation using react-native-maps
  * This file is loaded on iOS / Android only.
  */
+// @ts-ignore: Optional dependency
+// eslint-disable-next-line import/no-unresolved
+import MapView, { Marker } from 'react-native-maps';
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 
 export type MapEntry = {

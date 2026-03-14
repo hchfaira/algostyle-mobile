@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../constants/theme';
-import { Button, Chip } from '../components/ui';
+import { Colors, Spacing, FontSize, FontWeight } from '../constants/theme';
+import { Button } from '../components/ui';
 import { api } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import type { UserRole } from '../types';

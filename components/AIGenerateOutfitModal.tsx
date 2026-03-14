@@ -11,20 +11,14 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInUp,
-  FadeOutDown,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize, FontWeight } from '../constants/theme';
-import { Button, Chip } from './ui';
 import type { Occasion, ScoringProfile } from '../types';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 interface AIGenerateOutfitModalProps {
   isVisible: boolean;
@@ -104,7 +98,7 @@ export const AIGenerateOutfitModal: React.FC<AIGenerateOutfitModalProps> = ({
           >
             {/* Occasion Selection */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>What's the Occasion?</Text>
+              <Text style={styles.sectionTitle}>What&apos;s the Occasion?</Text>
               <View style={styles.chipGrid}>
                 {OCCASIONS.map((occ) => (
                   <TouchableOpacity

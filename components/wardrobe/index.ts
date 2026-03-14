@@ -7,4 +7,3 @@ export { default as AddGarmentModal } from './AddGarmentModal';
 export { default as SmartAddSheet } from './SmartAddSheet';
 export { default as ClosetAuditSheet } from './ClosetAuditSheet';
 export * from './constants';
-export { CATEGORY_EMOJI } from '../common/constants';

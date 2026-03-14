@@ -7,15 +7,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../constants/theme';
 import { Button } from '../components/ui';
 import { useAppStore } from '../store/useAppStore';
-
-const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const { isAuthenticated } = useAppStore();

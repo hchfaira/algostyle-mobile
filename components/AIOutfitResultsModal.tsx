@@ -20,13 +20,11 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
   Pressable,
 } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeInUp,
-  FadeOutDown,
   Layout,
   useSharedValue,
   useAnimatedStyle,
@@ -35,11 +33,8 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../constants/theme';
 import type { OutfitResult, Occasion, ScoringProfile } from '../types';
-
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -68,7 +63,7 @@ const ScoreBar = ({ label, value, delay = 0 }: { label: string; value: number; d
   const width = useSharedValue(0);
   React.useEffect(() => {
     width.value = withTiming(value, { duration: 600 + delay });
-  }, [value]);
+  }, [value, width, delay]);
   const barStyle = useAnimatedStyle(() => ({
     width: `${interpolate(width.value, [0, 1], [0, 100])}%`,
     backgroundColor: scoreColor(width.value),

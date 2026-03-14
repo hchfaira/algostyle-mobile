@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, BorderRadius, FontSize, FontWeight, Spacing } from '../../constants/theme';
+import { Colors, FontSize, FontWeight, Spacing } from '../../constants/theme';
 
 interface ScoreBarProps {
   label: string;

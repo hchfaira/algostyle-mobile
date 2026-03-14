@@ -16,16 +16,12 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../constants/theme';
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_W - Spacing.lg * 2;
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../constants/theme';
 
 interface AgendaEntry {
   id: string;
@@ -47,15 +43,6 @@ interface OutfitHistoryDetailModalProps {
   onTryOn?: (outfitId: string) => void;
   onShare?: (outfit: AgendaEntry) => void;
 }
-
-const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
-  top: 'shirt-outline',
-  bottom: 'cut-outline',
-  dress: 'rose-outline',
-  outerwear: 'layers-outline',
-  shoes: 'footsteps-outline',
-  accessory: 'watch-outline',
-};
 
 export function OutfitHistoryDetailModal({
   visible,

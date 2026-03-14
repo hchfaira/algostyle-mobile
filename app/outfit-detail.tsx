@@ -9,15 +9,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../constants/theme';
 import { Card, ScoreBar, Button } from '../components/ui';
 import { useAppStore } from '../store/useAppStore';
-
-const { width } = Dimensions.get('window');
 
 const SCORE_LABELS: Record<string, { label: string; color: string }> = {
   color_harmony:  { label: 'Color Harmony',  color: Colors.accent },

@@ -5,7 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import OutfitMap from '../ui/OutfitMap';
 import type { AgendaEntry } from './constants';
 
@@ -104,7 +104,7 @@ export default function AgendaSection({ entries, selectedId, onSelect, onRemove 
       <View style={styles.mapSection}>
         <View style={styles.mapHeader}>
           <Ionicons name="map" size={20} color={Colors.textPrimary} />
-          <Text style={styles.mapTitle}>WHERE YOU'LL WEAR THEM</Text>
+          <Text style={styles.mapTitle}>WHERE YOU&apos;LL WEAR THEM</Text>
         </View>
         <OutfitMap
           entries={entries}

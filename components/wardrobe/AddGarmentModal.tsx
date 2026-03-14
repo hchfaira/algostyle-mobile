@@ -5,7 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
 import { ADD_MENU_ITEMS, CATEGORY_ICONS } from './constants';
 
 const { width: SCREEN_W } = Dimensions.get('window');

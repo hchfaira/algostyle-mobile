@@ -5,7 +5,7 @@
  * and opens a full bottom-sheet chat when tapped.
  * Rendered inside the tabs layout so it persists across all tabs.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,11 @@ const QUICK_PROMPTS = [
 
 // ─── Typing indicator dots with staggered fade ───────────────
 const TypingIndicator = () => {
-  const dots = [useRef(new Animated.Value(0.3)).current, useRef(new Animated.Value(0.3)).current, useRef(new Animated.Value(0.3)).current];
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
+  const dots = React.useMemo(() => [dot1, dot2, dot3], [dot1, dot2, dot3]);
+
   useEffect(() => {
     const anims = dots.map((dot, i) =>
       Animated.loop(
@@ -49,7 +53,7 @@ const TypingIndicator = () => {
     );
     anims.forEach(a => a.start());
     return () => anims.forEach(a => a.stop());
-  }, []);
+  }, [dots]);
   return (
     <View style={chat.typingRow}>
       <View style={chat.avatar}><Ionicons name="sparkles" size={13} color="#FFF" /></View>
@@ -108,7 +112,7 @@ export const FloatingChatButton: React.FC = () => {
         Animated.timing(glowAnim, { toValue: 0, duration: 1600, useNativeDriver: true }),
       ])
     ).start();
-  }, []);
+  }, [floatY, glowAnim]);
 
   // ── Press feedback ────────────────────────────────────────
   const handlePressIn = () => {
@@ -119,16 +123,16 @@ export const FloatingChatButton: React.FC = () => {
   };
 
   // ── Chat session ──────────────────────────────────────────
-  useEffect(() => {
-    if (open && !chatSessionId) initSession();
-  }, [open]);
-
-  const initSession = async () => {
+  const initSession = useCallback(async () => {
     try {
       const res = await api.startChatSession(userId || undefined);
       setChatSession(res.session_id);
     } catch {}
-  };
+  }, [userId, setChatSession]);
+
+  useEffect(() => {
+    if (open && !chatSessionId) initSession();
+  }, [open, chatSessionId, initSession]);
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || !chatSessionId) return;

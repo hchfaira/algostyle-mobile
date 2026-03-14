@@ -19,8 +19,6 @@ import {
   TouchableOpacity,
   Pressable,
   Dimensions,
-  ScrollView,
-  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -95,7 +93,7 @@ export function OutfitDetailCard({
         // Call the try-on handler
         onTryOn?.(outfit.id);
         // Note: Actual diffusion model integration happens in recommend.tsx
-      } catch (err) {
+      } catch {
         Alert.alert('Error', 'Failed to generate try-on');
       } finally {
         setIsGeneratingTryOn(false);

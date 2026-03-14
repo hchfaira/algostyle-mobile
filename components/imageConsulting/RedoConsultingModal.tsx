@@ -48,7 +48,7 @@ export default function RedoConsultingModal({ visible, onClose, onSubmit, initia
       setHeightStr(initialHeight ? String(initialHeight) : '');
       setWeightStr(initialWeight ? String(initialWeight) : '');
     }
-  }, [visible]);
+  }, [visible, initialHeight, initialWeight]);
 
   const handleWebFileChange = (e: any) => {
     const file: File = e.target.files?.[0];

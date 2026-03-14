@@ -3,7 +3,7 @@
  * Thin orchestrator — logic in useChat, UI in components/chat
  */
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
 import { TopBar } from '../../components/ui';

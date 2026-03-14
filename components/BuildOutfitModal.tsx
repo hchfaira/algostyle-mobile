@@ -1,6 +1,3 @@
-/**
- * Build Outfit Modal — allows users to manually select items and create custom outfits
- */
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -12,7 +9,6 @@ import {
   Alert,
   ScrollView,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -91,10 +87,6 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
       setIsCreating(true);
 
       // Get selected garments
-      const selectedGarments = wardrobe.filter((item) =>
-        selectedItems.includes(item.id)
-      );
-
       // Create outfit via API
       const response = await api.createCustomOutfit(userId, {
         name: outfitName,

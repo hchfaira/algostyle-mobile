@@ -24,9 +24,9 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import type { GarmentItem, SmartSuggestion } from '../types';
@@ -147,7 +147,11 @@ export const CapsuleWardrobeModal: React.FC<CapsuleWardrobeModalProps> = ({
   const toggleItem = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }, []);
@@ -170,7 +174,11 @@ export const CapsuleWardrobeModal: React.FC<CapsuleWardrobeModalProps> = ({
   const toggleSuggestion = (id: string) => {
     setPendingSuggestions((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -279,8 +287,6 @@ export const CapsuleWardrobeModal: React.FC<CapsuleWardrobeModalProps> = ({
 
   /* ── STEP: review ─────────────────────────────────────────────── */
   const renderReviewStep = () => {
-    const hasSomething = totalSelectedCount > 0;
-
     return (
       <Animated.View entering={FadeInUp.springify()}>
         {/* Combination hero */}

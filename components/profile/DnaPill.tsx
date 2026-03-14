@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, FontSize, FontWeight } from '../../constants/theme';
 
 interface DnaPillProps {
   label: string;
