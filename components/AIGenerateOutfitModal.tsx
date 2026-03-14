@@ -15,6 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInUp,
+  FadeOutDown,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, FontSize, FontWeight } from '../constants/theme';
