@@ -86,16 +86,16 @@ export default function TabLayout() {
         <Tabs.Screen
           name="chat"
           options={{
-            href: null, // hidden from tab bar — accessed via FloatingChatButton
+            title: 'AI Chat',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="sparkles-outline" size={size} color={color} />
+            ),
           }}
         />
         <Tabs.Screen
           name="why-algostyle"
           options={{
-            title: 'Why Us',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="information-circle-outline" size={size} color={color} />
-            ),
+            href: null, // hidden from tab bar — accessed via profile menu
           }}
         />
         {/* Profile is accessed via TopBar */}

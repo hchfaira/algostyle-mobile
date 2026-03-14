@@ -2,7 +2,7 @@
  * Welcome Screen — ASOS-style editorial landing
  * Bold typography, black CTA, minimal decoration
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,19 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../constants/theme';
 import { Button } from '../components/ui';
+import { useAppStore } from '../store/useAppStore';
 
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const { isAuthenticated } = useAppStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)/wardrobe');
+    }
+  }, [isAuthenticated]);
+
   return (
     <View style={styles.container}>
       {/* Content */}

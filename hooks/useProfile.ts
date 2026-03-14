@@ -66,6 +66,7 @@ export function useProfile() {
     { icon: 'notifications-outline',   label: 'Notifications',      value: 'On',                             action: () => {} },
     { icon: 'eye-outline',             label: 'Account Visibility', value: MOCK_SOCIAL.is_public ? 'Public' : 'Private', action: () => {} },
     { icon: 'shield-checkmark-outline', label: 'Privacy & Data',    action: () => {} },
+    { icon: 'information-circle-outline', label: 'Why Us',          action: () => router.push('/why-algostyle') },
     { icon: 'help-circle-outline',     label: 'Help & FAQ',         action: () => {} },
   ], [profile, router]);
 
