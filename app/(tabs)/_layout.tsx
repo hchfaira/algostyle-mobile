@@ -2,7 +2,7 @@
  * Tab Layout — bottom navigation
  *
  * Bottom tabs: People · Wardrobe · Outfits · Shop · Why AlgoStyle
- * Chat → replaced by FloatingChatButton (FAB) visible across all tabs
+ * Chat → replaced by SideTabAI (discreet side tab) visible across all tabs
  * Profile → accessed via TopBar
  *
  * Design: ASOS-style, black active state, minimal chrome
@@ -12,7 +12,7 @@ import { View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSize, FontWeight } from '../../constants/theme';
-import { FloatingChatButton } from '../../components/FloatingChatButton';
+import SideTabAI from '../../components/SideTabAI';
 
 export default function TabLayout() {
   return (
@@ -86,10 +86,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: 'AI Chat',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="sparkles-outline" size={size} color={color} />
-            ),
+            href: null, // hidden — replaced by SideTabAI side tab
           }}
         />
         <Tabs.Screen
@@ -107,8 +104,8 @@ export default function TabLayout() {
         />
       </Tabs>
 
-      {/* Floating AI chat button — visible across all tabs */}
-      <FloatingChatButton />
+      {/* Side Tab AI — visible across all tabs */}
+      <SideTabAI />
     </View>
   );
 }

@@ -3,10 +3,35 @@
  */
 import type { AuthResponse } from '../../types';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 const AUTH_USER_ID_KEY = 'auth_user_id';
 const AUTH_USER_NAME_KEY = 'auth_user_name';
+
+// expo-secure-store is not supported on web — fall back to localStorage
+const storage = {
+  async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      try { return localStorage.getItem(key); } catch { return null; }
+    }
+    return SecureStore.getItemAsync(key);
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    if (Platform.OS === 'web') {
+      try { localStorage.setItem(key, value); } catch {}
+      return;
+    }
+    return SecureStore.setItemAsync(key, value);
+  },
+  async deleteItem(key: string): Promise<void> {
+    if (Platform.OS === 'web') {
+      try { localStorage.removeItem(key); } catch {}
+      return;
+    }
+    return SecureStore.deleteItemAsync(key);
+  },
+};
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -28,14 +53,13 @@ export const createAuthSlice = (set: any): AuthState => ({
   isRestoring: true,
 
   setAuth: (auth) => {
-    // Save to secure storage
-    SecureStore.setItemAsync(AUTH_TOKEN_KEY, auth.token).catch(err =>
+    storage.setItem(AUTH_TOKEN_KEY, auth.token).catch(err =>
       console.error('Failed to save token:', err)
     );
-    SecureStore.setItemAsync(AUTH_USER_ID_KEY, auth.user_id).catch(err =>
+    storage.setItem(AUTH_USER_ID_KEY, auth.user_id).catch(err =>
       console.error('Failed to save user_id:', err)
     );
-    SecureStore.setItemAsync(AUTH_USER_NAME_KEY, auth.name).catch(err =>
+    storage.setItem(AUTH_USER_NAME_KEY, auth.name).catch(err =>
       console.error('Failed to save user name:', err)
     );
 
@@ -49,14 +73,13 @@ export const createAuthSlice = (set: any): AuthState => ({
   },
 
   logout: () => {
-    // Clear secure storage
-    SecureStore.deleteItemAsync(AUTH_TOKEN_KEY).catch(err =>
+    storage.deleteItem(AUTH_TOKEN_KEY).catch(err =>
       console.error('Failed to clear token:', err)
     );
-    SecureStore.deleteItemAsync(AUTH_USER_ID_KEY).catch(err =>
+    storage.deleteItem(AUTH_USER_ID_KEY).catch(err =>
       console.error('Failed to clear user_id:', err)
     );
-    SecureStore.deleteItemAsync(AUTH_USER_NAME_KEY).catch(err =>
+    storage.deleteItem(AUTH_USER_NAME_KEY).catch(err =>
       console.error('Failed to clear user name:', err)
     );
 
@@ -71,9 +94,9 @@ export const createAuthSlice = (set: any): AuthState => ({
 
   restoreAuth: async () => {
     try {
-      const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-      const userId = await SecureStore.getItemAsync(AUTH_USER_ID_KEY);
-      const userName = await SecureStore.getItemAsync(AUTH_USER_NAME_KEY);
+      const token = await storage.getItem(AUTH_TOKEN_KEY);
+      const userId = await storage.getItem(AUTH_USER_ID_KEY);
+      const userName = await storage.getItem(AUTH_USER_NAME_KEY);
 
       if (token && userId) {
         set({

@@ -1,20 +1,32 @@
 /**
  * useWardrobe — All wardrobe state, filtering, and async handlers
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, ScrollView, Dimensions } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
 
 import { api } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
-import { Spacing } from '../constants/theme';
-import type { SmartSuggestion, FlaggedItem, GarmentItem } from '../types';
-
-const { width: SCREEN_W } = Dimensions.get('window');
+import { BROWSABLE_CATEGORIES } from '../components/wardrobe/constants';
+import type {
+  SmartSuggestion,
+  FlaggedItem,
+  GarmentItem,
+  CapsuleScoreResponse,
+  GarmentAnalysis,
+  MissingPiecesResponse,
+  CapsuleEvolutionResponse,
+  SmartRemovalResponse,
+  SortMode,
+  GarmentSortScore,
+  WardrobeSortScoresResponse,
+} from '../types';
 
 export function useWardrobe() {
   const { userId, wardrobe, setWardrobe, addGarment, removeGarment } = useAppStore();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  // All category keys visible by default
+  const allCategoryKeys = BROWSABLE_CATEGORIES.map((c) => c.key);
+  const [visibleCategories, setVisibleCategories] = useState<string[]>(allCategoryKeys);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -40,37 +52,77 @@ export function useWardrobe() {
   // Capsule
   const [showCapsule, setShowCapsule] = useState(false);
 
-  // Auto-scroll ref
-  const smartScrollRef = useRef<ScrollView>(null);
+  // ── Capsule Score ──────────────────────────────────────────
+  const [capsuleScore, setCapsuleScore] = useState<CapsuleScoreResponse | null>(null);
+  const [capsuleScoreLoading, setCapsuleScoreLoading] = useState(false);
 
-  // Auto-scroll smart cards
-  useEffect(() => {
-    let scrollPosition = 0;
-    const cardWidth = (SCREEN_W - Spacing.lg * 2 - Spacing.sm * 2) / 3 + Spacing.sm;
-    const totalScrollWidth = cardWidth * 3;
-    const interval = setInterval(() => {
-      scrollPosition += 1;
-      if (scrollPosition >= totalScrollWidth) scrollPosition = 0;
-      smartScrollRef.current?.scrollTo({ x: scrollPosition, animated: true });
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
+  // ── Garment Detail + Analysis ─────────────────────────────
+  const [selectedGarment, setSelectedGarment] = useState<GarmentItem | null>(null);
+  const [garmentAnalysis, setGarmentAnalysis] = useState<GarmentAnalysis | null>(null);
+  const [garmentAnalysisLoading, setGarmentAnalysisLoading] = useState(false);
+  const [showGarmentDetail, setShowGarmentDetail] = useState(false);
+
+  // ── Missing Pieces ─────────────────────────────────────────
+  const [showMissingPieces, setShowMissingPieces] = useState(false);
+  const [missingPieces, setMissingPieces] = useState<MissingPiecesResponse | null>(null);
+  const [missingPiecesLoading, setMissingPiecesLoading] = useState(false);
+
+  // ── Capsule Evolution ──────────────────────────────────────
+  const [showEvolution, setShowEvolution] = useState(false);
+  const [evolutionData, setEvolutionData] = useState<CapsuleEvolutionResponse | null>(null);
+  const [evolutionLoading, setEvolutionLoading] = useState(false);
+
+  // ── Smart Removal ──────────────────────────────────────────
+  const [showSmartRemoval, setShowSmartRemoval] = useState(false);
+  const [removalData, setRemovalData] = useState<SmartRemovalResponse | null>(null);
+  const [removalLoading, setRemovalLoading] = useState(false);
+  const [removalProfile, setRemovalProfile] = useState<'minimalist' | 'balanced' | 'generous'>('balanced');
+
+  // ── Sort Mode ──────────────────────────────────────────────
+  const [sortMode, setSortMode] = useState<SortMode>('default');
+  const [sortScores, setSortScores] = useState<Record<string, GarmentSortScore>>({});
+  const [sortScoresLoading, setSortScoresLoading] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<string>('');
 
   // ── Load wardrobe ──
   const loadWardrobe = useCallback(async () => {
     if (!userId) return;
     try {
       const filters: Record<string, string> = {};
-      if (selectedCategory !== 'all') filters.category = selectedCategory;
       if (searchQuery) filters.search = searchQuery;
       const items = await api.getWardrobe(userId, filters);
       setWardrobe(items);
     } catch {}
-  }, [userId, selectedCategory, searchQuery]);
+  }, [userId, searchQuery]);
 
   useEffect(() => {
     loadWardrobe();
   }, [loadWardrobe]);
+
+  // Load capsule score on mount / wardrobe change
+  useEffect(() => {
+    if (!userId) return;
+    setCapsuleScoreLoading(true);
+    api.getCapsuleScore(userId)
+      .then(setCapsuleScore)
+      .catch(() => {})
+      .finally(() => setCapsuleScoreLoading(false));
+  }, [userId, wardrobe.length]);
+
+  // Load sort scores on mount / wardrobe change
+  useEffect(() => {
+    if (!userId) return;
+    setSortScoresLoading(true);
+    api.getSortScores(userId)
+      .then((res: WardrobeSortScoresResponse) => {
+        const map: Record<string, GarmentSortScore> = {};
+        res.scores.forEach((s) => { map[s.garment_id] = s; });
+        setSortScores(map);
+        setCurrentSeason(res.current_season);
+      })
+      .catch(() => {})
+      .finally(() => setSortScoresLoading(false));
+  }, [userId, wardrobe.length]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -151,19 +203,102 @@ export function useWardrobe() {
     setExpandedAuditId((prev) => (prev === id ? null : id));
   };
 
-  // ── Derived data ──
-  const filteredItems = wardrobe.filter((item) => {
-    if (selectedCategory !== 'all' && item.attributes.category !== selectedCategory) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return (
-        item.attributes.color_primary.toLowerCase().includes(q) ||
-        (item.attributes.subcategory || '').toLowerCase().includes(q) ||
-        (item.attributes.material || '').toLowerCase().includes(q) ||
-        item.attributes.category.toLowerCase().includes(q)
-      );
+  // ── Garment detail + analysis ──
+  const handleGarmentPress = async (item: GarmentItem) => {
+    setSelectedGarment(item);
+    setGarmentAnalysis(null);
+    setShowGarmentDetail(true);
+    if (!userId) return;
+    setGarmentAnalysisLoading(true);
+    try {
+      const analysis = await api.getGarmentAnalysis(userId, item.id);
+      setGarmentAnalysis(analysis);
+    } catch {}
+    finally {
+      setGarmentAnalysisLoading(false);
     }
-    return true;
+  };
+
+  // ── Missing pieces ──
+  const handleOpenMissingPieces = async () => {
+    setShowMissingPieces(true);
+    if (!userId || missingPieces) return;
+    setMissingPiecesLoading(true);
+    try {
+      const res = await api.getMissingPieces(userId, 6);
+      setMissingPieces(res);
+    } catch {}
+    finally {
+      setMissingPiecesLoading(false);
+    }
+  };
+
+  // ── Capsule evolution ──
+  const handleOpenEvolution = async () => {
+    setShowEvolution(true);
+    if (!userId || evolutionData) return;
+    setEvolutionLoading(true);
+    try {
+      const res = await api.getCapsuleEvolution(userId, 90);
+      setEvolutionData(res);
+    } catch {}
+    finally {
+      setEvolutionLoading(false);
+    }
+  };
+
+  // ── Smart removal ──
+  const handleOpenSmartRemoval = async (profile?: 'minimalist' | 'balanced' | 'generous') => {
+    const p = profile || removalProfile;
+    setRemovalProfile(p);
+    setShowSmartRemoval(true);
+    if (!userId) return;
+    setRemovalLoading(true);
+    setRemovalData(null);
+    try {
+      const res = await api.getSmartRemoval(userId, p);
+      setRemovalData(res);
+    } catch {}
+    finally {
+      setRemovalLoading(false);
+    }
+  };
+
+  const handleChangeRemovalProfile = (p: 'minimalist' | 'balanced' | 'generous') => {
+    handleOpenSmartRemoval(p);
+  };
+
+  // ── Derived data ──
+
+  // Search-filtered full list
+  const searchFiltered = wardrobe.filter((item) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      item.attributes.color_primary.toLowerCase().includes(q) ||
+      (item.attributes.subcategory || '').toLowerCase().includes(q) ||
+      (item.attributes.material || '').toLowerCase().includes(q) ||
+      item.attributes.category.toLowerCase().includes(q)
+    );
+  });
+
+  // Apply sort
+  const sortedAll = [...searchFiltered].sort((a, b) => {
+    if (sortMode === 'default') return 0;
+    const sa = sortScores[a.id];
+    const sb = sortScores[b.id];
+    if (!sa || !sb) return 0;
+    if (sortMode === 'versatility') return sb.versatility_score - sa.versatility_score;
+    if (sortMode === 'redundancy')  return sb.redundancy_score  - sa.redundancy_score;
+    if (sortMode === 'seasonal')    return sb.seasonal_score    - sa.seasonal_score;
+    if (sortMode === 'impact')      return sb.impact_score      - sa.impact_score;
+    return 0;
+  });
+
+  // Items grouped by category (only visible categories, in their order)
+  const itemsByCategory: Record<string, typeof wardrobe> = {};
+  visibleCategories.forEach((cat) => {
+    itemsByCategory[cat] = sortedAll.filter((item) => item.attributes.category === cat);
   });
 
   const categoryCounts: Record<string, number> = { all: wardrobe.length };
@@ -172,16 +307,30 @@ export function useWardrobe() {
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
   });
 
+  // Toggle a category on/off in the visible list
+  const toggleCategory = (key: string) => {
+    setVisibleCategories((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
+  };
+
   return {
     // State
     wardrobe,
-    filteredItems,
+    itemsByCategory,
     categoryCounts,
-    selectedCategory,
-    setSelectedCategory,
+    visibleCategories,
+    toggleCategory,
     searchQuery,
     setSearchQuery,
     refreshing,
+
+    // Sort
+    sortMode,
+    setSortMode,
+    sortScores,
+    sortScoresLoading,
+    currentSeason,
 
     // Add menu
     showAddMenu,
@@ -210,12 +359,44 @@ export function useWardrobe() {
     showCapsule,
     setShowCapsule,
 
+    // Capsule Score
+    capsuleScore,
+    capsuleScoreLoading,
+
+    // Garment Detail
+    selectedGarment,
+    garmentAnalysis,
+    garmentAnalysisLoading,
+    showGarmentDetail,
+    setShowGarmentDetail,
+    handleGarmentPress,
+
+    // Missing Pieces
+    showMissingPieces,
+    setShowMissingPieces,
+    missingPieces,
+    missingPiecesLoading,
+    handleOpenMissingPieces,
+
+    // Capsule Evolution
+    showEvolution,
+    setShowEvolution,
+    evolutionData,
+    evolutionLoading,
+    handleOpenEvolution,
+
+    // Smart Removal
+    showSmartRemoval,
+    setShowSmartRemoval,
+    removalData,
+    removalLoading,
+    removalProfile,
+    handleOpenSmartRemoval,
+    handleChangeRemovalProfile,
+
     // Grid
     onRefresh,
     handleDelete,
     handleToggleFavorite,
-
-    // Ref
-    smartScrollRef,
   };
 }

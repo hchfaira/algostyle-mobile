@@ -4,7 +4,6 @@
  */
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { Colors } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
@@ -28,40 +27,26 @@ export default function RootLayout() {
 
   // Show splash screen while restoring auth state
   if (isRestoring) {
-    return (
-      <>
-        <StatusBar style="dark" />
-        <View style={{ flex: 1, backgroundColor: Colors.background }} />
-      </>
-    );
+    return <View style={{ flex: 1, backgroundColor: Colors.background }} />;
   }
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: Colors.background },
-          animation: 'fade',
-        }}
-      >
-        {/* If authenticated, show tabs directly */}
-        {isAuthenticated ? (
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-        ) : (
-          <>
-            {/* If not authenticated, show welcome and auth flow */}
-            <Stack.Screen name="index" />
-            <Stack.Screen name="auth" />
-            <Stack.Screen name="onboarding" />
-          </>
-        )}
-        <Stack.Screen
-          name="outfit-detail"
-          options={{ animation: 'slide_from_right', presentation: 'card' }}
-        />
-      </Stack>
-    </>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: Colors.background },
+        animation: 'fade',
+      }}
+    >
+      <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="auth" />
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="home" />
+      <Stack.Screen
+        name="outfit-detail"
+        options={{ animation: 'slide_from_right', presentation: 'card' }}
+      />
+    </Stack>
   );
 }

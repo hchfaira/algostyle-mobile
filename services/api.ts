@@ -17,6 +17,14 @@ import type {
   CustomOutfitResponse,
   OutfitResult,
   ImageConsultingResult,
+  CapsuleScoreResponse,
+  GarmentAnalysis,
+  MissingPiecesResponse,
+  CapsuleEvolutionResponse,
+  SmartRemovalResponse,
+  WardrobeSortScoresResponse,
+  CapsuleGenerateRequest,
+  CapsuleGenerateResponse,
 } from '../types';
 
 class ApiService {
@@ -121,6 +129,38 @@ class ApiService {
 
   async getClosetAudit(userId: string): Promise<ClosetAuditResponse> {
     return this.request(`/api/v1/wardrobe/audit?user_id=${userId}`);
+  }
+
+  // ─── Capsule Intelligence ─────────────────────
+  async getCapsuleScore(userId: string): Promise<CapsuleScoreResponse> {
+    return this.request(`/api/v1/wardrobe/capsule-score?user_id=${userId}`);
+  }
+
+  async getGarmentAnalysis(userId: string, garmentId: string): Promise<GarmentAnalysis> {
+    return this.request(`/api/v1/wardrobe/items/${garmentId}/analysis?user_id=${userId}`);
+  }
+
+  async getMissingPieces(userId: string, limit = 5): Promise<MissingPiecesResponse> {
+    return this.request(`/api/v1/wardrobe/missing-pieces?user_id=${userId}&limit=${limit}`);
+  }
+
+  async getCapsuleEvolution(userId: string, days = 90): Promise<CapsuleEvolutionResponse> {
+    return this.request(`/api/v1/wardrobe/capsule-evolution?user_id=${userId}&days=${days}`);
+  }
+
+  async getSmartRemoval(userId: string, profile = 'balanced'): Promise<SmartRemovalResponse> {
+    return this.request(`/api/v1/wardrobe/smart-removal?user_id=${userId}&profile=${profile}`);
+  }
+
+  async getSortScores(userId: string): Promise<WardrobeSortScoresResponse> {
+    return this.request(`/api/v1/wardrobe/sort-scores?user_id=${userId}`);
+  }
+
+  async generateCapsule(userId: string, params: CapsuleGenerateRequest): Promise<CapsuleGenerateResponse> {
+    const qs = new URLSearchParams({ user_id: userId });
+    if (params.occasion) qs.set('occasion', params.occasion);
+    if (params.season)   qs.set('season',   params.season);
+    return this.request(`/api/v1/wardrobe/capsule-generate?${qs}`);
   }
 
   // ─── Recommendations ──────────────────────────

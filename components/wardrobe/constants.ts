@@ -11,6 +11,10 @@ const { width: SCREEN_W } = Dimensions.get('window');
 export const CARD_GAP = 16;
 export const CARD_WIDTH = (SCREEN_W - Spacing.lg * 2 - CARD_GAP) / 2;
 
+// Row card: 3 visible at once with padding
+export const ROW_CARD_GAP = 10;
+export const ROW_CARD_WIDTH = (SCREEN_W - Spacing.lg * 2 - ROW_CARD_GAP * 2) / 3;
+
 export const CATEGORIES: { key: GarmentCategory | 'all'; label: string }[] = [
   { key: 'all',        label: 'All' },
   { key: 'top',        label: 'Tops' },
@@ -19,6 +23,16 @@ export const CATEGORIES: { key: GarmentCategory | 'all'; label: string }[] = [
   { key: 'outerwear',  label: 'Outercoats' },
   { key: 'shoes',      label: 'Shoes' },
   { key: 'accessory',  label: 'Accessories' },
+];
+
+// Categories shown as browsable sections (no "All")
+export const BROWSABLE_CATEGORIES: { key: GarmentCategory; label: string; icon: string; emoji: string }[] = [
+  { key: 'top',       label: 'Tops',        icon: 'shirt-outline',     emoji: '👕' },
+  { key: 'bottom',    label: 'Bottoms',     icon: 'resize-outline',    emoji: '👖' },
+  { key: 'dress',     label: 'Dresses',     icon: 'woman-outline',     emoji: '👗' },
+  { key: 'outerwear', label: 'Outercoats',  icon: 'snow-outline',      emoji: '🧥' },
+  { key: 'shoes',     label: 'Shoes',       icon: 'footsteps-outline', emoji: '👟' },
+  { key: 'accessory', label: 'Accessories', icon: 'watch-outline',     emoji: '💍' },
 ];
 
 export const CATEGORY_ICONS: Record<string, string> = {

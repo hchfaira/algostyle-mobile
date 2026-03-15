@@ -47,6 +47,23 @@ export type {
   FlaggedItem,
   ClosetAuditSummary,
   ClosetAuditResponse,
+  CapsuleScoreBreakdown,
+  CapsuleOpportunity,
+  CapsuleScoreResponse,
+  GarmentAnalysis,
+  MissingPiece,
+  MissingPiecesResponse,
+  EvolutionSnapshot,
+  CapsuleEvolutionResponse,
+  RemovalCandidate,
+  SmartRemovalResponse,
+  SortMode,
+  GarmentSortScore,
+  WardrobeSortScoresResponse,
+  CapsuleOccasion,
+  CapsuleSeason,
+  CapsuleGenerateRequest,
+  CapsuleGenerateResponse,
 } from './schemas/wardrobe';
 
 // Recommendation types

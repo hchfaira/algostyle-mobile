@@ -1,5 +1,5 @@
 /**
- * GarmentCard — Animated wardrobe item card with fav / delete
+ * GarmentCard — Animated wardrobe item card with fav / delete / tap for detail
  */
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
@@ -14,6 +14,7 @@ import Animated, {
 
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { CARD_WIDTH, CATEGORY_ICONS, formatFormality } from './constants';
+import VersatilityBadge from './VersatilityBadge';
 import type { GarmentItem } from '../../types';
 
 interface Props {
@@ -21,9 +22,11 @@ interface Props {
   index: number;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  onPress?: (item: GarmentItem) => void;
+  versatilityScore?: number;
 }
 
-export default function GarmentCard({ item, index, onDelete, onToggleFavorite }: Props) {
+export default function GarmentCard({ item, index, onDelete, onToggleFavorite, onPress, versatilityScore }: Props) {
   const cat = item.attributes.category;
   const icon = CATEGORY_ICONS[cat] || 'cube-outline';
   const confidence = Math.round(item.attributes.confidence * 100);
@@ -43,12 +46,19 @@ export default function GarmentCard({ item, index, onDelete, onToggleFavorite }:
       <Pressable
         onPressIn={() => (scale.value = withSpring(0.96))}
         onPressOut={() => (scale.value = withSpring(1))}
+        onPress={() => onPress?.(item)}
         onLongPress={() => onDelete(item.id)}
         delayLongPress={400}
       >
         <Animated.View style={[styles.card, animatedCardStyle]}>
           <View style={[styles.cardImage, { backgroundColor: item.attributes.color_hex || '#F5F5F5' }]}>
             <Ionicons name={icon as any} size={40} color="rgba(255,255,255,0.7)" style={styles.cardIconShadow} />
+
+            {/* Versatility badge top-left */}
+            {versatilityScore !== undefined && (
+              <VersatilityBadge score={versatilityScore} />
+            )}
+
             <TouchableOpacity
               style={styles.favBtn}
               onPress={() => onToggleFavorite(item.id)}
@@ -73,7 +83,7 @@ export default function GarmentCard({ item, index, onDelete, onToggleFavorite }:
             </Text>
             <View style={styles.cardFooter}>
               <Text style={styles.formalityTag}>{formatFormality(item.attributes.formality)}</Text>
-              {confidence > 0 && <Text style={styles.confidenceText}>{confidence}% Match</Text>}
+              {confidence > 0 ? <Text style={styles.confidenceText}>{confidence}%</Text> : null}
             </View>
           </View>
         </Animated.View>
