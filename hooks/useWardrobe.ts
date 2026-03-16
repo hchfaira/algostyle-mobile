@@ -3,6 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 import { api } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
@@ -11,6 +12,7 @@ import type {
   SmartSuggestion,
   FlaggedItem,
   GarmentItem,
+  GarmentAttributes,
   CapsuleScoreResponse,
   GarmentAnalysis,
   MissingPiecesResponse,
@@ -22,7 +24,11 @@ import type {
 } from '../types';
 
 export function useWardrobe() {
-  const { userId, wardrobe, setWardrobe, addGarment, removeGarment } = useAppStore();
+  const { userId: storeUserId, wardrobe, setWardrobe, addGarment, removeGarment } = useAppStore();
+
+  // In dev, fall back to a test user so the wardrobe tab works without login
+  // Use || (not ??) so empty string '' also triggers the fallback
+  const userId = storeUserId || (__DEV__ ? 'dev-test-user' : null);
 
   // All category keys visible by default
   const allCategoryKeys = BROWSABLE_CATEGORIES.map((c) => c.key);
@@ -31,7 +37,12 @@ export function useWardrobe() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
-  // Smart Add
+  // ─── Garment Upload Flow ──────────────────────────────────────────────────
+  const [showUploadFlow, setShowUploadFlow] = useState(false);
+  const [uploadImageUri, setUploadImageUri] = useState<string>('');
+  const [uploadImageBase64, setUploadImageBase64] = useState<string>('');
+
+
   const [showSmartAdd, setShowSmartAdd] = useState(false);
   const [smartSuggestions, setSmartSuggestions] = useState<SmartSuggestion[]>([]);
   const [smartInsight, setSmartInsight] = useState<string | null>(null);
@@ -172,23 +183,85 @@ export function useWardrobe() {
     }
   };
 
+  /**
+   * Called when user picks a source from AddGarmentModal.
+   * Requests camera / gallery permission, launches picker, then opens upload flow.
+   */
+  const handlePickSource = async (source: 'camera' | 'gallery') => {
+    try {
+      let result: ImagePicker.ImagePickerResult;
+
+      if (source === 'camera') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Camera access is needed to take photos.');
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.85,
+          allowsEditing: false,
+          base64: true,
+        });
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Gallery access is needed to pick photos.');
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.85,
+          allowsEditing: false,
+          base64: true,
+        });
+      }
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        setUploadImageUri(asset.uri);
+        setUploadImageBase64(asset.base64 ?? '');
+        setShowUploadFlow(true);
+      }
+    } catch {
+      Alert.alert('Error', 'Could not open photo picker. Please try again.');
+    }
+  };
+
+  const handleGarmentAdded = useCallback((_attributes: GarmentAttributes) => {
+    setShowUploadFlow(false);
+    setUploadImageUri('');
+    setUploadImageBase64('');
+    loadWardrobe();
+  }, [loadWardrobe]);
+
   const handleDelete = (id: string) => {
-    Alert.alert('Remove Item', 'This item will be removed from your wardrobe.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          if (!userId) return;
-          try {
-            await api.deleteGarment(userId, id);
-            removeGarment(id);
-          } catch {
-            Alert.alert('Error', 'Failed to remove garment');
-          }
-        },
-      },
-    ]);
+    const doDelete = async () => {
+      if (!userId) return;
+      try {
+        await api.deleteGarment(userId, id);
+        removeGarment(id);
+      } catch (e) {
+        // Use platform-safe error alert
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert('Failed to remove garment. Please try again.');
+        } else {
+          Alert.alert('Error', 'Failed to remove garment');
+        }
+      }
+    };
+
+    // Alert.alert is broken on Expo web — use window.confirm instead
+    if (typeof window !== 'undefined' && window.confirm) {
+      if (window.confirm('Remove this item from your wardrobe?')) {
+        doDelete();
+      }
+    } else {
+      Alert.alert('Remove Item', 'This item will be removed from your wardrobe.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   };
 
   const handleToggleFavorite = async (id: string) => {
@@ -316,6 +389,7 @@ export function useWardrobe() {
 
   return {
     // State
+    userId,
     wardrobe,
     itemsByCategory,
     categoryCounts,
@@ -336,6 +410,14 @@ export function useWardrobe() {
     showAddMenu,
     setShowAddMenu,
     handleAddGarment,
+
+    // Upload flow (camera / gallery → analyze → confirm)
+    showUploadFlow,
+    setShowUploadFlow,
+    uploadImageUri,
+    uploadImageBase64,
+    handlePickSource,
+    handleGarmentAdded,
 
     // Smart Add
     showSmartAdd,

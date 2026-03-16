@@ -30,7 +30,24 @@ export interface GarmentItem {
   created_at: string;
 }
 
-// ─── Smart Add Suggestions ──────────────────────
+// ─── Garment Upload Flow ─────────────────────────
+
+export interface ExtractionWarning {
+  code: string;           // "low_confidence" | "multiple_garments" | "poor_lighting" | "no_garment_found"
+  severity: 'info' | 'warning' | 'error';
+  message: string;
+}
+
+export interface GarmentExtractionResult {
+  attributes: GarmentAttributes;
+  warnings: ExtractionWarning[];
+  auto_confirm: boolean;
+  garments_detected: number;
+  confidence: number;
+  cropped_image_b64: string | null;
+}
+
+
 
 export interface SmartSuggestion {
   id: string;

@@ -6,6 +6,8 @@ import type {
   AuthResponse,
   UserProfile,
   GarmentItem,
+  GarmentAttributes,
+  GarmentExtractionResult,
   RecommendationResponse,
   ChatResponseType,
   Occasion,
@@ -56,6 +58,11 @@ class ApiService {
     if (!res.ok) {
       const errorBody = await res.text();
       throw new Error(`API Error ${res.status}: ${errorBody}`);
+    }
+    // Some endpoints (e.g. DELETE) return empty body or plain JSON
+    const contentType = res.headers.get('content-type') ?? '';
+    if (res.status === 204 || !contentType.includes('application/json')) {
+      return undefined as unknown as T;
     }
     return res.json();
   }
@@ -109,6 +116,82 @@ class ApiService {
     return this.request(`/api/v1/wardrobe/items?${params}`, {
       method: 'POST',
     });
+  }
+
+  /**
+   * Build a FormData with a real Blob from base64.
+   * Works on both web and React Native (no native file URI needed).
+   */
+  private base64ToFormData(base64: string, fieldName: string, extraFields?: Record<string, string>): FormData {
+    const byteString = atob(base64);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+    const blob = new Blob([ab], { type: 'image/jpeg' });
+    const form = new FormData();
+    form.append(fieldName, blob, 'garment.jpg');
+    if (extraFields) {
+      for (const [k, v] of Object.entries(extraFields)) form.append(k, v);
+    }
+    return form;
+  }
+
+  /**
+   * Analyze an image before saving.
+   * Returns extracted attributes + quality warnings.
+   * Does NOT persist — call addGarmentWithImage to save.
+   */
+  async analyzeGarmentImage(
+    userId: string,
+    imageUri: string,
+    imageBase64: string,
+    mode: 'outfit' | 'auto',
+    hintCategory?: string,
+  ): Promise<GarmentExtractionResult> {
+    if (!userId) throw new Error('Not logged in — userId is missing');
+    const extraFields: Record<string, string> = { mode };
+    if (hintCategory) extraFields.hint_category = hintCategory;
+    const form = this.base64ToFormData(imageBase64, 'image', extraFields);
+    const url = `${this.baseUrl}/api/v1/wardrobe/analyze-image?user_id=${userId}`;
+    const headers: Record<string, string> = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Analyze error ${res.status}: ${body}`);
+    }
+    return res.json();
+  }
+
+  /**
+   * Upload image + save garment (call after user confirms extraction result).
+   * All garment attributes go as query params; image is multipart body.
+   */
+  async addGarmentWithImage(
+    userId: string,
+    imageUri: string,
+    imageBase64: string,
+    attributes: GarmentAttributes,
+  ): Promise<GarmentItem> {
+    if (!userId) throw new Error('Not logged in — userId is missing');
+    const params = new URLSearchParams({ user_id: userId, category: attributes.category });
+    if (attributes.subcategory)   params.set('subcategory',   attributes.subcategory);
+    if (attributes.color_primary) params.set('color_primary', attributes.color_primary);
+    if (attributes.color_hex)     params.set('color_hex',     attributes.color_hex);
+    if (attributes.pattern)       params.set('pattern',       attributes.pattern);
+    if (attributes.material)      params.set('material',      attributes.material);
+    if (attributes.formality)     params.set('formality',     attributes.formality);
+
+    const form = this.base64ToFormData(imageBase64, 'image');
+    const url = `${this.baseUrl}/api/v1/wardrobe/items?${params}`;
+    const headers: Record<string, string> = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Add garment error ${res.status}: ${body}`);
+    }
+    return res.json();
   }
 
   async deleteGarment(userId: string, garmentId: string): Promise<void> {

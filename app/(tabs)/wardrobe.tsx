@@ -37,6 +37,7 @@ import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../const
 import { TopBar } from '../../components/ui';
 import ActionCard, { CARD_WIDTH } from '../../components/wardrobe/ActionCard';
 import AddGarmentModal from '../../components/wardrobe/AddGarmentModal';
+import GarmentUploadFlow from '../../components/wardrobe/GarmentUploadFlow';
 import SmartAddSheet from '../../components/wardrobe/SmartAddSheet';
 import ClosetAuditSheet from '../../components/wardrobe/ClosetAuditSheet';
 import CapsuleScoreCard from '../../components/wardrobe/CapsuleScoreCard';
@@ -265,7 +266,18 @@ export default function WardrobeScreen() {
       </ScrollView>
 
       {/* ── Modals ── */}
-      <AddGarmentModal visible={w.showAddMenu} onClose={() => w.setShowAddMenu(false)} onAddGarment={w.handleAddGarment} />
+      <AddGarmentModal visible={w.showAddMenu} onClose={() => w.setShowAddMenu(false)} onPickSource={w.handlePickSource} />
+      {w.showUploadFlow && !!w.uploadImageUri && (
+        <GarmentUploadFlow
+          visible={w.showUploadFlow}
+          imageUri={w.uploadImageUri}
+          imageBase64={w.uploadImageBase64}
+          userId={w.userId ?? ''}
+          onClose={() => w.setShowUploadFlow(false)}
+          onGarmentAdded={w.handleGarmentAdded}
+        />
+      )}
+
       <SmartAddSheet visible={w.showSmartAdd} onClose={() => w.setShowSmartAdd(false)} loading={w.smartLoading} suggestions={w.smartSuggestions} insight={w.smartInsight} />
       <ClosetAuditSheet visible={w.showAudit} onClose={() => w.setShowAudit(false)} loading={w.auditLoading} items={w.auditItems} summary={w.auditSummary} expandedId={w.expandedAuditId} onToggleExpand={w.toggleAuditExpand} />
       <CapsuleWardrobeModal isVisible={w.showCapsule} onClose={() => w.setShowCapsule(false)} />

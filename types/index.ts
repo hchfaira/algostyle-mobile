@@ -42,6 +42,8 @@ export type {
   GarmentCategory,
   GarmentAttributes,
   GarmentItem,
+  ExtractionWarning,
+  GarmentExtractionResult,
   SmartSuggestion,
   SmartSuggestionsResponse,
   FlaggedItem,

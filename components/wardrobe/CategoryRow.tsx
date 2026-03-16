@@ -14,11 +14,17 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
-import { ROW_CARD_WIDTH, ROW_CARD_GAP, CATEGORY_ICONS } from './constants';
+import { CATEGORY_ICONS } from './constants';
 import GarmentCard from './GarmentCard';
 import type { GarmentItem } from '../../types';
 
 const { width: SCREEN_W } = Dimensions.get('window');
+
+// 3 cards visible + 12px peek of 4th to hint scrollability
+const H_PAD   = Spacing.lg;          // horizontal padding on each side
+const GAP     = 10;                   // gap between cards
+const PEEK    = 12;                   // how much of the 4th card peeks
+const CARD_W  = (SCREEN_W - H_PAD * 2 - GAP * 2 - PEEK) / 3;
 
 interface Props {
   categoryKey: string;
@@ -32,18 +38,9 @@ interface Props {
   onToggleFavorite: (id: string) => void;
 }
 
-function EmptySlot() {
-  return (
-    <View style={[styles.card, styles.emptySlot]}>
-      <Ionicons name="add-outline" size={22} color={Colors.border} />
-    </View>
-  );
-}
-
 const CategoryRow = memo(function CategoryRow({
   categoryKey,
   label,
-  emoji,
   items,
   sectionIndex,
   sortScores,
@@ -81,13 +78,15 @@ const CategoryRow = memo(function CategoryRow({
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.rowContent}
-          snapToInterval={ROW_CARD_WIDTH + ROW_CARD_GAP}
+          snapToInterval={CARD_W + GAP}
+          snapToAlignment="start"
           decelerationRate="fast"
           renderItem={({ item, index }) => (
-            <View style={[styles.card, { marginRight: ROW_CARD_GAP }]}>
+            <View style={{ marginRight: index < items.length - 1 ? GAP : 0 }}>
               <GarmentCard
                 item={item}
                 index={sectionIndex * 10 + index}
+                cardWidth={CARD_W}
                 onDelete={onDeleteItem}
                 onToggleFavorite={onToggleFavorite}
                 onPress={onPressItem}
@@ -113,7 +112,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: H_PAD,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
   },
@@ -143,27 +142,14 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   rowContent: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: H_PAD,
     paddingBottom: Spacing.sm,
-  },
-  card: {
-    width: ROW_CARD_WIDTH,
-  },
-  emptySlot: {
-    height: ROW_CARD_WIDTH * 1.4,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 4,
   },
   emptyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: H_PAD,
     paddingVertical: Spacing.md,
   },
   emptyText: {
@@ -174,7 +160,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: Colors.border,
-    marginHorizontal: Spacing.lg,
+    marginHorizontal: H_PAD,
     marginTop: Spacing.xs,
   },
 });
