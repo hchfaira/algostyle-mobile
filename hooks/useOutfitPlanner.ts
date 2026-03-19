@@ -7,11 +7,22 @@ import { Alert } from 'react-native';
 
 import { api } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
-import { INITIAL_AGENDA, type AgendaEntry } from '../components/recommendation/constants';
+import { INITIAL_AGENDA, type AgendaEntry, type ReminderSetting } from '../components/recommendation/constants';
 import type { Occasion, ScoringProfile } from '../types';
 
+/** Short display label from an ISO date string, e.g. "Wed 18 Mar" */
+function formatShortDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  } catch {
+    return isoDate;
+  }
+}
+
 export function useOutfitPlanner() {
-  const { outfits, setOutfits, isLoadingOutfits, setLoadingOutfits } = useAppStore();
+  const { userId: storeUserId, outfits, setOutfits, isLoadingOutfits, setLoadingOutfits } = useAppStore();
+  const userId = storeUserId || (__DEV__ ? 'dev-test-user' : undefined);
 
   // Generation params
   const [occasion, setOccasion] = useState<Occasion>('casual');
@@ -26,6 +37,7 @@ export function useOutfitPlanner() {
   const [showAIResultsModal, setShowAIResultsModal] = useState(false);
   const [showOutfitDetail, setShowOutfitDetail] = useState(false);
   const [selectedOutfitDetail, setSelectedOutfitDetail] = useState<AgendaEntry | null>(null);
+  const [showWeekPlanner, setShowWeekPlanner] = useState(false);
 
   // Agenda
   const [agendaEntries, setAgendaEntries] = useState<AgendaEntry[]>(INITIAL_AGENDA);
@@ -42,7 +54,10 @@ export function useOutfitPlanner() {
   const handleGenerate = useCallback(async () => {
     setLoadingOutfits(true);
     try {
-      const res = await api.getRecommendations({ occasion, scoring_profile: scoringProfile, top_k: topK });
+      const res = await api.getRecommendations(
+        { occasion, scoring_profile: scoringProfile, top_k: topK },
+        userId,
+      );
       setOutfits(res.outfits);
       setShowResults(true);
       setShowAIGenerateModal(false);
@@ -51,7 +66,7 @@ export function useOutfitPlanner() {
     } finally {
       setLoadingOutfits(false);
     }
-  }, [occasion, scoringProfile, topK, setLoadingOutfits, setOutfits]);
+  }, [occasion, scoringProfile, topK, userId, setLoadingOutfits, setOutfits]);
 
   const handleAIGenerate = useCallback(async (
     selectedOccasion: Occasion,
@@ -65,11 +80,14 @@ export function useOutfitPlanner() {
     setShowAIResultsModal(true);
     setLoadingOutfits(true);
     try {
-      const res = await api.getRecommendations({
-        occasion: selectedOccasion,
-        scoring_profile: selectedProfile,
-        top_k: selectedTopK,
-      });
+      const res = await api.getRecommendations(
+        {
+          occasion: selectedOccasion,
+          scoring_profile: selectedProfile,
+          top_k: selectedTopK,
+        },
+        userId,
+      );
       setOutfits(res.outfits);
     } catch (err: any) {
       setShowAIResultsModal(false);
@@ -77,7 +95,7 @@ export function useOutfitPlanner() {
     } finally {
       setLoadingOutfits(false);
     }
-  }, [setLoadingOutfits, setOutfits]);
+  }, [userId, setLoadingOutfits, setOutfits]);
 
   const handleScheduleOutfit = useCallback(() => {
     if (!planningDate.trim() || !planningLocation.trim()) {
@@ -105,6 +123,31 @@ export function useOutfitPlanner() {
 
   const removeAgendaEntry = useCallback((id: string) => {
     setAgendaEntries(prev => prev.filter(e => e.id !== id));
+  }, []);
+
+  /** Add a new entry (used by WeekPlannerModal when user picks a day) */
+  const addAgendaEntry = useCallback((entry: Omit<AgendaEntry, 'id'>) => {
+    const newEntry: AgendaEntry = { ...entry, id: `planned_${Date.now()}` };
+    setAgendaEntries(prev => [...prev, newEntry]);
+  }, []);
+
+  /** Update the planned date + reminder of an existing entry */
+  const updateAgendaEntryDate = useCallback((
+    id: string,
+    isoDate: string | null,
+    reminder: ReminderSetting,
+    displayLabel: string,
+  ) => {
+    setAgendaEntries(prev => prev.map(e => {
+      if (e.id !== id) return e;
+      return {
+        ...e,
+        plannedDate: isoDate ?? undefined,
+        reminder,
+        fullDate: displayLabel,
+        date: isoDate ? formatShortDate(isoDate) : e.date,
+      };
+    }));
   }, []);
 
   const openOutfitDetail = useCallback((entry: AgendaEntry) => {
@@ -137,6 +180,7 @@ export function useOutfitPlanner() {
     showAIResultsModal, setShowAIResultsModal,
     showOutfitDetail, selectedOutfitDetail,
     openOutfitDetail, closeOutfitDetail,
+    showWeekPlanner, setShowWeekPlanner,
     virtualTryOns,
 
     // Agenda
@@ -148,5 +192,7 @@ export function useOutfitPlanner() {
     planningOccasion, setPlanningOccasion,
     handleScheduleOutfit,
     removeAgendaEntry,
+    addAgendaEntry,
+    updateAgendaEntryDate,
   };
 }

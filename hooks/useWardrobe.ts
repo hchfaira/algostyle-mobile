@@ -95,6 +95,10 @@ export function useWardrobe() {
   const [sortScoresLoading, setSortScoresLoading] = useState(false);
   const [currentSeason, setCurrentSeason] = useState<string>('');
 
+  // ── Secondary filters (color + formality) ──────────────────
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
+  const [formalityFilter, setFormalityFilter] = useState<string | null>(null);
+
   // ── Load wardrobe ──
   const loadWardrobe = useCallback(async () => {
     if (!userId) return;
@@ -368,10 +372,17 @@ export function useWardrobe() {
     return 0;
   });
 
+  // Apply secondary filters (color + formality)
+  const secondaryFiltered = sortedAll.filter((item) => {
+    if (colorFilter && item.attributes.color_hex !== colorFilter) return false;
+    if (formalityFilter && item.attributes.formality !== formalityFilter) return false;
+    return true;
+  });
+
   // Items grouped by category (only visible categories, in their order)
   const itemsByCategory: Record<string, typeof wardrobe> = {};
   visibleCategories.forEach((cat) => {
-    itemsByCategory[cat] = sortedAll.filter((item) => item.attributes.category === cat);
+    itemsByCategory[cat] = secondaryFiltered.filter((item) => item.attributes.category === cat);
   });
 
   const categoryCounts: Record<string, number> = { all: wardrobe.length };
@@ -405,6 +416,14 @@ export function useWardrobe() {
     sortScores,
     sortScoresLoading,
     currentSeason,
+
+    // Secondary filters
+    colorFilter,
+    setColorFilter,
+    formalityFilter,
+    setFormalityFilter,
+    /** All items after sort (before secondary filter) — feeds GarmentFilterBar option derivation */
+    sortedItems: sortedAll,
 
     // Add menu
     showAddMenu,

@@ -22,6 +22,7 @@ export interface OutfitResult {
   id: string;
   rank: number;
   name: string;
+  grade?: string;
   garments: GarmentItem[];
   score: OutfitScore;
   explanation_brief?: string;

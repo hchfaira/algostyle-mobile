@@ -45,9 +45,10 @@ import GarmentDetailModal from '../../components/wardrobe/GarmentDetailModal';
 import MissingPiecesSheet from '../../components/wardrobe/MissingPiecesSheet';
 import CapsuleEvolutionChart from '../../components/wardrobe/CapsuleEvolutionChart';
 import SmartRemovalSheet from '../../components/wardrobe/SmartRemovalSheet';
-import SortFilterBar from '../../components/wardrobe/SortFilterBar';
+
 import CategoryFilterSheet from '../../components/wardrobe/CategoryFilterSheet';
 import CategoryRow from '../../components/wardrobe/CategoryRow';
+import GarmentFilterBar from '../../components/wardrobe/GarmentFilterBar';
 import { BROWSABLE_CATEGORIES } from '../../components/wardrobe/constants';
 import { CapsuleWardrobeModal } from '../../components/CapsuleWardrobeModal';
 import { useWardrobe } from '../../hooks/useWardrobe';
@@ -86,7 +87,10 @@ export default function WardrobeScreen() {
   const [activeCard, setActiveCard] = useState(0);
   const scrollX = useSharedValue(0);
 
-  // Category filter sheet
+  // Filter sheet — opened via filter icon button; GarmentFilterBar registers its open fn here
+  const openFilterSheet = useRef<(() => void) | null>(null);
+
+  // Category filter sheet (category visibility) — kept for the CategoryFilterSheet modal
   const [showCategoryFilter, setShowCategoryFilter] = useState(false);
   const hiddenCount = BROWSABLE_CATEGORIES.length - w.visibleCategories.length;
 
@@ -110,11 +114,8 @@ export default function WardrobeScreen() {
     [w],
   );
 
-  // Sections to render: only visible categories that appear in BROWSABLE_CATEGORIES order
-  const sections = useMemo(
-    () => BROWSABLE_CATEGORIES.filter((c) => w.visibleCategories.includes(c.key)),
-    [w.visibleCategories],
-  );
+  // Sections to render: all categories in BROWSABLE_CATEGORIES order
+  const sections = useMemo(() => BROWSABLE_CATEGORIES, []);
 
   return (
     <View style={styles.container}>
@@ -124,44 +125,58 @@ export default function WardrobeScreen() {
         favoriteCount={w.wardrobe.filter((g) => g.is_favorite).length}
       />
 
-      {/* ── Search + Filter + Add ── */}
-      <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
-        <TextInput
-          style={styles.searchInput}
-          value={w.searchQuery}
-          onChangeText={w.setSearchQuery}
-          placeholder="Search items..."
-          placeholderTextColor={Colors.textMuted}
-          returnKeyType="search"
-        />
-        {w.searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => w.setSearchQuery('')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-          </TouchableOpacity>
-        )}
-        {/* Category filter icon — badge shows number of hidden categories */}
+      {/* ── Search + Filters + Add Clothing ── */}
+      <View style={styles.searchRow}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            value={w.searchQuery}
+            onChangeText={w.setSearchQuery}
+            placeholder="Search items..."
+            placeholderTextColor={Colors.textMuted}
+            returnKeyType="search"
+          />
+          {w.searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => w.setSearchQuery('')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Colour / style filter */}
         <TouchableOpacity
-          style={styles.filterBtn}
-          activeOpacity={0.7}
-          onPress={() => setShowCategoryFilter(true)}
+          style={[styles.iconBtn, (w.colorFilter || w.formalityFilter) && styles.iconBtnActive]}
+          activeOpacity={0.75}
+          onPress={() => openFilterSheet.current?.()}
+          accessibilityLabel="Filters"
         >
           <Ionicons
             name="options-outline"
             size={18}
-            color={hiddenCount > 0 ? Colors.accent : Colors.textMuted}
+            color={(w.colorFilter || w.formalityFilter) ? Colors.textOnAccent : Colors.textSecondary}
           />
-          {hiddenCount > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{hiddenCount}</Text>
+          {(w.colorFilter || w.formalityFilter) && (
+            <View style={styles.iconBtnBadge}>
+              <Text style={styles.iconBtnBadgeText}>
+                {(w.colorFilter ? 1 : 0) + (w.formalityFilter ? 1 : 0)}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={() => w.setShowAddMenu(true)}>
-          <Ionicons name="add" size={20} color="#FFF" />
+
+        {/* Add Clothing */}
+        <TouchableOpacity
+          style={styles.addBtn}
+          activeOpacity={0.8}
+          onPress={() => w.setShowAddMenu(true)}
+          accessibilityLabel="Add clothing"
+        >
+          <Ionicons name="add" size={16} color="#FFF" />
+          <Text style={styles.addBtnLabel}>Add Clothing</Text>
         </TouchableOpacity>
       </View>
 
@@ -174,12 +189,18 @@ export default function WardrobeScreen() {
         counts={w.categoryCounts}
       />
 
-      {/* ── Sort Filter Bar ── */}
-      <SortFilterBar
+      {/* ── Filter + Sort bar (unified) ── */}
+      <GarmentFilterBar
+        items={w.sortedItems}
+        totalCount={Object.values(w.itemsByCategory).flat().length}
+        colorFilter={w.colorFilter}
+        formalityFilter={w.formalityFilter}
+        onColorChange={w.setColorFilter}
+        onFormalityChange={w.setFormalityFilter}
         sortMode={w.sortMode}
         onChangeSortMode={w.setSortMode}
-        loading={w.sortScoresLoading}
-        currentSeason={w.currentSeason}
+        sortScoresLoading={w.sortScoresLoading}
+        onRegisterOpen={(fn) => { openFilterSheet.current = fn; }}
       />
 
       {/* ── Scrollable body ── */}
@@ -239,28 +260,22 @@ export default function WardrobeScreen() {
         </View>
 
         {/* ── Category sections ── */}
-        {sections.length === 0 ? (
-          <View style={styles.emptyAll}>
-            <Ionicons name="eye-off-outline" size={40} color={Colors.border} />
-            <Text style={styles.emptyAllTitle}>No categories selected</Text>
-            <Text style={styles.emptyAllDesc}>Tap the chips above to show your wardrobe sections.</Text>
-          </View>
-        ) : (
-          sections.map((cat, i) => (
-            <CategoryRow
-              key={cat.key}
-              categoryKey={cat.key}
-              label={cat.label}
-              emoji={cat.emoji}
-              items={w.itemsByCategory[cat.key] ?? []}
-              sectionIndex={i}
-              sortScores={w.sortScores}
-              onPressItem={w.handleGarmentPress}
-              onDeleteItem={w.handleDelete}
-              onToggleFavorite={w.handleToggleFavorite}
-            />
-          ))
-        )}
+        {sections.map((cat, i) => (
+          <CategoryRow
+            key={cat.key}
+            categoryKey={cat.key}
+            label={cat.label}
+            emoji={cat.emoji}
+            items={w.itemsByCategory[cat.key] ?? []}
+            sectionIndex={i}
+            sortScores={w.sortScores}
+            onPressItem={w.handleGarmentPress}
+            onDeleteItem={w.handleDelete}
+            onToggleFavorite={w.handleToggleFavorite}
+            isVisible={w.visibleCategories.includes(cat.key)}
+            onToggleVisibility={() => w.toggleCategory(cat.key)}
+          />
+        ))}
 
         <View style={{ height: 110 }} />
       </ScrollView>
@@ -291,75 +306,114 @@ export default function WardrobeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  addBtn: { width: 36, height: 36, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
-  filterBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    minWidth: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  filterBadgeText: {
-    fontSize: 9,
-    fontWeight: FontWeight.black,
-    color: Colors.textOnAccent,
-    lineHeight: 14,
+
+  // ── Search + filter + add row ─────────────────────────────────────────
+  searchRow: {
+    flexDirection:    'row',
+    alignItems:       'center',
+    gap:              Spacing.sm,
+    marginHorizontal: Spacing.lg,
+    marginTop:        Spacing.sm,
+    marginBottom:     Spacing.xs,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: BorderRadius.sm,
+    flex:              1,
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               Spacing.sm,
+    backgroundColor:   Colors.surfaceLight,
+    borderWidth:       1,
+    borderColor:       Colors.border,
     paddingHorizontal: Spacing.md,
-    height: 44,
+    height:            46,
   },
-  searchInput: { flex: 1, color: Colors.textPrimary, fontSize: FontSize.md },
+  searchInput: {
+    flex:       1,
+    color:      Colors.textPrimary,
+    fontSize:   FontSize.md,
+    fontWeight: FontWeight.regular,
+  },
 
-  // ── Carousel ──────────────────────────────────────────────────────────
-  carouselWrap: { marginTop: Spacing.sm, marginBottom: Spacing.md },
+  // ── Icon button (filter) ──────────────────────────────────────────────
+  iconBtn: {
+    width:           46,
+    height:          46,
+    alignItems:      'center',
+    justifyContent:  'center',
+    borderWidth:     1,
+    borderColor:     Colors.border,
+    backgroundColor: Colors.surfaceLight,
+  },
+  iconBtnActive: {
+    backgroundColor: Colors.accent,
+    borderColor:     Colors.accent,
+  },
+  iconBtnBadge: {
+    position:         'absolute',
+    top:              6,
+    right:            6,
+    minWidth:         14,
+    height:           14,
+    borderRadius:     7,
+    backgroundColor:  '#FFFFFF',
+    alignItems:       'center',
+    justifyContent:   'center',
+    paddingHorizontal: 2,
+  },
+  iconBtnBadgeText: {
+    fontSize:   9,
+    fontWeight: FontWeight.black,
+    color:      Colors.accent,
+    lineHeight: 14,
+  },
+
+  // ── Add Clothing button ───────────────────────────────────────────────
+  addBtn: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             6,
+    height:          46,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.accent,
+  },
+  addBtnLabel: {
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.black,
+    color:         '#FFFFFF',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+
+  // ── Action carousel ───────────────────────────────────────────────────
+  carouselWrap:    { marginTop: Spacing.md, marginBottom: Spacing.sm },
   carouselContent: { paddingHorizontal: Spacing.lg },
   dotsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection:  'row',
+    alignItems:     'center',
     justifyContent: 'center',
-    gap: 4,
-    marginTop: Spacing.sm,
+    gap:            5,
+    marginTop:      Spacing.sm,
   },
-  dot: { height: 2, borderRadius: 1, backgroundColor: '#3B2A1A' },
+  dot: { height: 2, borderRadius: 1, backgroundColor: Colors.accent },
 
   // ── Empty state ───────────────────────────────────────────────────────
   emptyAll: {
-    alignItems: 'center',
-    paddingTop: 60,
+    alignItems:        'center',
+    paddingTop:        72,
     paddingHorizontal: Spacing.xl,
-    gap: Spacing.sm,
+    gap:               Spacing.sm,
   },
   emptyAllTitle: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.black,
-    color: Colors.textSecondary,
-    letterSpacing: 1,
+    fontSize:      FontSize.md,
+    fontWeight:    FontWeight.black,
+    color:         Colors.textSecondary,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   emptyAllDesc: {
-    fontSize: FontSize.sm,
-    color: Colors.textMuted,
-    textAlign: 'center',
+    fontSize:   FontSize.sm,
+    color:      Colors.textMuted,
+    textAlign:  'center',
     lineHeight: 20,
   },
 });

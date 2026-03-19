@@ -1,6 +1,7 @@
 /**
- * CapsuleScoreCard — Hero card showing capsule cohesion score at top of wardrobe.
- * Includes animated progress ring, grade badge, score breakdown bars, and tip.
+ * CapsuleScoreCard — Compact summary strip showing capsule cohesion score.
+ * Keeps all data + actions but in a tight, scannable layout that doesn't
+ * dominate the page — leaving room for the Smart Action carousel below.
  */
 import React, { useEffect } from 'react';
 import {
@@ -8,7 +9,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -22,8 +22,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import type { CapsuleScoreResponse } from '../../types';
 
-const { width: SCREEN_W } = Dimensions.get('window');
-
 interface Props {
   data: CapsuleScoreResponse | null;
   loading: boolean;
@@ -32,19 +30,15 @@ interface Props {
 }
 
 const BREAKDOWN_LABELS: Record<string, string> = {
-  versatility: 'Versatility',
-  colour_cohesion: 'Colour Mix',
-  occasion_coverage: 'Occasions',
-  season_balance: 'Seasons',
+  versatility:        'Versatility',
+  colour_cohesion:    'Colour',
+  occasion_coverage:  'Occasions',
+  season_balance:     'Seasons',
 };
 
+const RING = 64;
+
 function GradeRing({ score, grade }: { score: number; grade: string }) {
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withTiming(score / 100, { duration: 1200, easing: Easing.out(Easing.cubic) });
-  }, [score]);
-
   const gradeColor =
     grade === 'S' || grade === 'A' ? Colors.success :
     grade === 'B' ? '#FF8800' :
@@ -53,14 +47,11 @@ function GradeRing({ score, grade }: { score: number; grade: string }) {
 
   return (
     <View style={styles.ringWrap}>
-      {/* Outer circle (track) */}
       <View style={styles.ringTrack} />
-      {/* Score number */}
       <View style={styles.ringCenter}>
         <Text style={[styles.scoreNum, { color: gradeColor }]}>{Math.round(score)}</Text>
         <Text style={styles.scoreUnit}>/100</Text>
       </View>
-      {/* Grade badge */}
       <View style={[styles.gradeBadge, { borderColor: gradeColor }]}>
         <Text style={[styles.gradeText, { color: gradeColor }]}>{grade}</Text>
       </View>
@@ -69,18 +60,18 @@ function GradeRing({ score, grade }: { score: number; grade: string }) {
 }
 
 export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPressMissing }: Props) {
-  const cardScale = useSharedValue(0.97);
   const cardOpacity = useSharedValue(0);
+  const cardScale   = useSharedValue(0.98);
 
   useEffect(() => {
     if (!loading && data) {
-      cardOpacity.value = withTiming(1, { duration: 400 });
-      cardScale.value = withSpring(1, { damping: 14 });
+      cardOpacity.value = withTiming(1, { duration: 350 });
+      cardScale.value   = withSpring(1, { damping: 14 });
     }
   }, [loading, data]);
 
   const animatedCard = useAnimatedStyle(() => ({
-    opacity: cardOpacity.value,
+    opacity:   cardOpacity.value,
     transform: [{ scale: cardScale.value }],
   }));
 
@@ -90,8 +81,8 @@ export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPr
         <View style={styles.skeletonRing} />
         <View style={styles.skeletonLines}>
           <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, { width: '60%' }]} />
-          <View style={[styles.skeletonLine, { width: '80%' }]} />
+          <View style={[styles.skeletonLine, { width: '55%' }]} />
+          <View style={[styles.skeletonLine, { width: '75%' }]} />
         </View>
       </View>
     );
@@ -102,127 +93,206 @@ export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPr
   const breakdown = Object.entries(data.breakdown) as [string, number][];
 
   return (
-    <Animated.View style={[animatedCard]}>
+    <Animated.View style={animatedCard}>
       <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>CAPSULE SCORE</Text>
-            <Text style={styles.subtitle}>{data.total_items} items · {data.grade_label}</Text>
-          </View>
-          <TouchableOpacity style={styles.historyBtn} onPress={onPressEvolution} activeOpacity={0.75}>
-            <Ionicons name="trending-up-outline" size={16} color={Colors.textMuted} />
-            <Text style={styles.historyLabel}>History</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Main content: ring + breakdown */}
-        <View style={styles.body}>
+        {/* ── Top row: ring · breakdown bars · CTA buttons ── */}
+        <View style={styles.topRow}>
+
+          {/* Score ring */}
           <GradeRing score={data.score} grade={data.grade} />
 
+          {/* Breakdown bars — compact, 2-column feel */}
           <View style={styles.breakdownCol}>
             {breakdown.map(([key, val]) => (
               <View key={key} style={styles.barRow}>
                 <Text style={styles.barLabel}>{BREAKDOWN_LABELS[key] || key}</Text>
                 <View style={styles.barTrack}>
-                  <Animated.View
-                    style={[styles.barFill, { width: `${val}%` as any }]}
-                  />
+                  <View style={[styles.barFill, { width: `${val}%` as any }]} />
                 </View>
                 <Text style={styles.barVal}>{Math.round(val)}</Text>
               </View>
             ))}
           </View>
+
+          {/* CTA buttons — vertical stack on the right */}
+          <View style={styles.ctaStack}>
+            <TouchableOpacity style={styles.ctaPrimary} onPress={onPressMissing} activeOpacity={0.8}
+              accessibilityLabel="See missing pieces">
+              <Ionicons name="add-circle-outline" size={13} color="#FFF" />
+              <Text style={styles.ctaPrimaryLabel}>Missing{'\n'}Pieces</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.ctaSecondary} onPress={onPressEvolution} activeOpacity={0.8}
+              accessibilityLabel="View my capsule journey">
+              <Ionicons name="analytics-outline" size={13} color={Colors.textPrimary} />
+              <Text style={styles.ctaSecondaryLabel}>My{'\n'}Journey</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Tip */}
-        {data.tip ? (
-          <View style={styles.tipRow}>
-            <Ionicons name="bulb-outline" size={14} color={Colors.accentWarm} />
-            <Text style={styles.tipText}>{data.tip}</Text>
-          </View>
-        ) : null}
-
-        {/* Opportunities */}
-        {data.top_opportunities.length > 0 && (
-          <View style={styles.oppsRow}>
-            {data.top_opportunities.map((opp, i) => (
-              <View key={i} style={styles.oppChip}>
-                <Ionicons name="add" size={11} color={Colors.textSecondary} />
-                <Text style={styles.oppLabel}>{opp.label}</Text>
-                <Text style={styles.oppImpact}>{opp.impact}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* CTA buttons */}
-        <View style={styles.ctaRow}>
-          <TouchableOpacity style={styles.ctaBtnPrimary} onPress={onPressMissing} activeOpacity={0.8}>
-            <Ionicons name="add-circle-outline" size={15} color="#FFF" />
-            <Text style={styles.ctaBtnTextPrimary}>Missing Pieces</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.ctaBtnSecondary} onPress={onPressEvolution} activeOpacity={0.8}>
-            <Ionicons name="analytics-outline" size={15} color={Colors.textPrimary} />
-            <Text style={styles.ctaBtnTextSecondary}>My Journey</Text>
-          </TouchableOpacity>
+        {/* ── Meta row: item count · grade label · tip (1 line) ── */}
+        <View style={styles.metaRow}>
+          <Text style={styles.metaText}>
+            {data.total_items} items · {data.grade_label}
+          </Text>
+          {data.tip ? (
+            <>
+              <View style={styles.metaDot} />
+              <Ionicons name="bulb-outline" size={11} color={Colors.accentWarm} />
+              <Text style={styles.metaTip} numberOfLines={1}>{data.tip}</Text>
+            </>
+          ) : null}
         </View>
+
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  // ── Card shell ───────────────────────────────────────────────────────
   card: {
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    backgroundColor: Colors.surfaceLight,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-    ...Shadow.sm,
+    marginBottom:     Spacing.sm,
+    backgroundColor:  Colors.surface,
+    borderWidth:      1,
+    borderColor:      Colors.border,
+    borderRadius:     BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical:   Spacing.sm + 2,
+    ...Shadow.md,
   },
-  skeleton: { minHeight: 160 },
-  skeletonRing: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.border, alignSelf: 'flex-start' },
-  skeletonLines: { flex: 1, gap: Spacing.sm, paddingTop: Spacing.sm },
-  skeletonLine: { height: 10, backgroundColor: Colors.border, width: '90%' },
+  skeleton:     { minHeight: 80, flexDirection: 'row', gap: Spacing.md },
+  skeletonRing: { width: RING, height: RING, borderRadius: RING / 2, backgroundColor: Colors.border },
+  skeletonLines:{ flex: 1, gap: Spacing.sm, justifyContent: 'center' },
+  skeletonLine: { height: 8, backgroundColor: Colors.border, borderRadius: 4, width: '90%' },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  title: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 2, textTransform: 'uppercase' },
-  subtitle: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2 },
-  historyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 8, borderWidth: 1, borderColor: Colors.border },
-  historyLabel: { fontSize: FontSize.xs, color: Colors.textMuted, fontWeight: FontWeight.medium },
+  // ── Top row: ring | bars | cta stack ────────────────────────────────
+  topRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           Spacing.md,
+  },
 
-  body: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, marginBottom: Spacing.md },
-
-  ringWrap: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  ringTrack: { width: 80, height: 80, borderRadius: 40, borderWidth: 6, borderColor: Colors.border, position: 'absolute' },
+  // ── Score ring ───────────────────────────────────────────────────────
+  ringWrap:   { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
+  ringTrack:  { width: RING, height: RING, borderRadius: RING / 2, borderWidth: 4, borderColor: Colors.border, position: 'absolute' },
   ringCenter: { alignItems: 'center' },
-  scoreNum: { fontSize: FontSize.xl, fontWeight: FontWeight.black, lineHeight: 28 },
-  scoreUnit: { fontSize: 9, color: Colors.textMuted, fontWeight: FontWeight.medium },
-  gradeBadge: { position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, borderWidth: 2, backgroundColor: Colors.surface, alignItems: 'center', justifyContent: 'center' },
-  gradeText: { fontSize: 10, fontWeight: FontWeight.black },
+  scoreNum:   { fontSize: FontSize.xl, fontWeight: FontWeight.black, lineHeight: 24 },
+  scoreUnit:  { fontSize: 9, color: Colors.textMuted, fontWeight: FontWeight.medium },
+  gradeBadge: {
+    position:        'absolute',
+    bottom:          -2,
+    right:           -2,
+    width:           20,
+    height:          20,
+    borderRadius:    10,
+    borderWidth:     2,
+    backgroundColor: Colors.surface,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  gradeText: { fontSize: 9, fontWeight: FontWeight.black },
 
+  // ── Breakdown bars ───────────────────────────────────────────────────
   breakdownCol: { flex: 1, gap: 6 },
-  barRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  barLabel: { width: 68, fontSize: 10, color: Colors.textMuted, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.3 },
-  barTrack: { flex: 1, height: 3, backgroundColor: Colors.border, overflow: 'hidden' },
-  barFill: { height: '100%', backgroundColor: Colors.accent },
-  barVal: { width: 24, fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.bold, textAlign: 'right' },
+  barRow:       { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  barLabel:     { width: 66, fontSize: 10, color: Colors.textMuted, fontWeight: FontWeight.medium },
+  barTrack:     { flex: 1, height: 3, backgroundColor: Colors.border, overflow: 'hidden', borderRadius: 2 },
+  barFill:      { height: '100%', backgroundColor: Colors.accent, borderRadius: 2 },
+  barVal:       { width: 22, fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.bold, textAlign: 'right' },
 
-  tipRow: { flexDirection: 'row', gap: 6, alignItems: 'flex-start', backgroundColor: Colors.accentWarm + '12', padding: Spacing.sm, marginBottom: Spacing.sm },
-  tipText: { flex: 1, fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 16 },
+  // ── CTA vertical stack ───────────────────────────────────────────────
+  ctaStack: { gap: Spacing.xs },
+  ctaPrimary: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    justifyContent:  'center',
+    gap:             4,
+    backgroundColor: Colors.accent,
+    paddingVertical:   7,
+    paddingHorizontal: 8,
+    borderRadius:    BorderRadius.sm,
+    minWidth:        72,
+  },
+  ctaPrimaryLabel: {
+    color:      '#FFF',
+    fontSize:   9,
+    fontWeight: FontWeight.black,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    textAlign:  'center',
+    lineHeight: 12,
+  },
+  ctaSecondary: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    justifyContent:  'center',
+    gap:             4,
+    borderWidth:     1,
+    borderColor:     Colors.accent,
+    paddingVertical:   7,
+    paddingHorizontal: 8,
+    borderRadius:    BorderRadius.sm,
+    backgroundColor: Colors.surface,
+    minWidth:        72,
+  },
+  ctaSecondaryLabel: {
+    color:      Colors.textPrimary,
+    fontSize:   9,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    textAlign:  'center',
+    lineHeight: 12,
+  },
 
-  oppsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.md },
-  oppChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface },
-  oppLabel: { fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.medium },
-  oppImpact: { fontSize: 9, color: Colors.success, fontWeight: FontWeight.bold, marginLeft: 2 },
+  // ── Meta / tip row ───────────────────────────────────────────────────
+  metaRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    marginTop:      Spacing.sm,
+    gap:            5,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop:     Spacing.xs + 2,
+  },
+  metaText: {
+    fontSize:   10,
+    color:      Colors.textMuted,
+    fontWeight: FontWeight.medium,
+  },
+  metaDot: {
+    width: 3, height: 3, borderRadius: 2,
+    backgroundColor: Colors.border,
+    marginHorizontal: 2,
+  },
+  metaTip: {
+    flex:       1,
+    fontSize:   10,
+    color:      Colors.textSecondary,
+    fontWeight: FontWeight.medium,
+    lineHeight: 14,
+  },
 
-  ctaRow: { flexDirection: 'row', gap: Spacing.sm },
-  ctaBtnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Colors.accent, paddingVertical: 10 },
-  ctaBtnPrimaryText: { color: '#FFF', fontSize: FontSize.xs, fontWeight: FontWeight.black, letterSpacing: 1, textTransform: 'uppercase' },
-  ctaBtnTextPrimary: { color: '#FFF', fontSize: FontSize.xs, fontWeight: FontWeight.black, letterSpacing: 1, textTransform: 'uppercase' },
-  ctaBtnSecondary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: Colors.border, paddingVertical: 10, backgroundColor: Colors.surface },
-  ctaBtnSecondaryText: { color: Colors.textPrimary, fontSize: FontSize.xs, fontWeight: FontWeight.bold, letterSpacing: 1, textTransform: 'uppercase' },
-  ctaBtnTextSecondary: { color: Colors.textPrimary, fontSize: FontSize.xs, fontWeight: FontWeight.bold, letterSpacing: 1, textTransform: 'uppercase' },
+  // ── Legacy style names kept so nothing outside breaks ────────────────
+  header:              {},
+  title:               {},
+  subtitle:            {},
+  historyBtn:          {},
+  historyLabel:        {},
+  body:                {},
+  tipRow:              {},
+  tipText:             {},
+  oppsRow:             {},
+  oppChip:             {},
+  oppLabel:            {},
+  oppImpact:           {},
+  ctaRow:              {},
+  ctaBtnPrimary:       {},
+  ctaBtnTextPrimary:   {},
+  ctaBtnPrimaryText:   {},
+  ctaBtnSecondary:     {},
+  ctaBtnTextSecondary: {},
+  ctaBtnSecondaryText: {},
 });

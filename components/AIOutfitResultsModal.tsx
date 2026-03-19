@@ -21,6 +21,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  Image,
 } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -34,7 +35,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../constants/theme';
-import type { OutfitResult, Occasion, ScoringProfile } from '../types';
+import type { OutfitResult, Occasion, ScoringProfile, GarmentItem } from '../types';
+import { OutfitDatePickerModal } from './OutfitDatePickerModal';
+import type { ReminderSetting } from './recommendation/constants';
+import GarmentDetailModal from './wardrobe/GarmentDetailModal';
+import { t } from '../i18n';
+import { CATEGORY_ICONS } from './wardrobe/constants';
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -112,6 +118,26 @@ const ExplanationBox: React.FC<ExplanationBoxProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
 
+  // Parse ✦ sections from detailed text (real AI output format)
+  const strengthLines: string[] = [];
+  const improveLines: string[] = [];
+  if (detailed) {
+    const parts = detailed.split('\n\n');
+    let inStrengths = false, inImprove = false;
+    for (const part of parts) {
+      for (const line of part.split('\n')) {
+        if (line.startsWith('✦ STRENGTHS')) { inStrengths = true; inImprove = false; continue; }
+        if (line.startsWith('✦ TO ELEVATE')) { inImprove = true; inStrengths = false; continue; }
+        if (line.startsWith('• ')) {
+          if (inStrengths) strengthLines.push(line.slice(2));
+          else if (inImprove) improveLines.push(line.slice(2));
+        }
+      }
+    }
+  }
+
+  const hasAISections = strengthLines.length > 0 || improveLines.length > 0;
+
   return (
     <View style={exStyles.container}>
       {/* Brief */}
@@ -150,7 +176,39 @@ const ExplanationBox: React.FC<ExplanationBoxProps> = ({
             </View>
           ) : (
             <>
-              {detailed ? (
+              {/* Structured strengths / improvements from real AI */}
+              {hasAISections ? (
+                <>
+                  {strengthLines.length > 0 && (
+                    <View style={exStyles.aiSection}>
+                      <View style={exStyles.aiSectionHeader}>
+                        <Ionicons name="checkmark-circle" size={13} color={Colors.success} />
+                        <Text style={[exStyles.aiSectionTitle, { color: Colors.success }]}>STRENGTHS</Text>
+                      </View>
+                      {strengthLines.map((s, i) => (
+                        <View key={i} style={exStyles.bulletRow}>
+                          <View style={[exStyles.bullet, { backgroundColor: Colors.success }]} />
+                          <Text style={exStyles.bulletText}>{s}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {improveLines.length > 0 && (
+                    <View style={[exStyles.aiSection, { marginTop: Spacing.sm }]}>
+                      <View style={exStyles.aiSectionHeader}>
+                        <Ionicons name="arrow-up-circle" size={13} color={Colors.accentWarm} />
+                        <Text style={[exStyles.aiSectionTitle, { color: Colors.accentWarm }]}>TO ELEVATE</Text>
+                      </View>
+                      {improveLines.map((s, i) => (
+                        <View key={i} style={exStyles.bulletRow}>
+                          <View style={[exStyles.bullet, { backgroundColor: Colors.accentWarm }]} />
+                          <Text style={exStyles.bulletText}>{s}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              ) : detailed ? (
                 <Text style={exStyles.detailedText}>{detailed}</Text>
               ) : null}
 
@@ -213,6 +271,9 @@ const exStyles = StyleSheet.create({
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
   loadingText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontStyle: 'italic' },
   detailedText: { fontSize: FontSize.sm, color: Colors.textSecondary, lineHeight: 22 },
+  aiSection: { gap: 6 },
+  aiSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 2 },
+  aiSectionTitle: { fontSize: 10, fontWeight: FontWeight.black, letterSpacing: 1.5, textTransform: 'uppercase' },
   noteRow: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'flex-start' },
   noteIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   noteText: { flex: 1, fontSize: FontSize.sm, color: Colors.textSecondary, lineHeight: 20 },
@@ -229,7 +290,7 @@ interface OutfitCardProps {
   item: OutfitResult;
   index: number;
   occasion: Occasion;
-  onWear: (item: OutfitResult) => void;
+  onWear: (item: OutfitResult, plannedDate: string | null, reminder: ReminderSetting, displayLabel: string) => void;
   onShare: (item: OutfitResult) => void;
   onLike: (item: OutfitResult) => void;
   likedIds: Set<string>;
@@ -262,6 +323,9 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const overallPct = pct(item.score.overall);
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedGarment, setSelectedGarment] = useState<GarmentItem | null>(null);
+
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 80).springify().damping(14)}
@@ -272,7 +336,11 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
         onPressIn={() => { scale.value = withSpring(0.985); }}
         onPressOut={() => { scale.value = withSpring(1); }}
       >
-        <Animated.View style={[cardStyles.card, cardStyle]}>
+        <Animated.View style={[
+          cardStyles.card,
+          index === 0 && cardStyles.cardTop,
+          cardStyle,
+        ]}>
           {/* Rank badge */}
           <View style={[cardStyles.rankBadge, { backgroundColor: index === 0 ? Colors.accentWarm : Colors.accent }]}>
             <Text style={cardStyles.rankText}>
@@ -280,61 +348,88 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
             </Text>
           </View>
 
-          {/* Garment strip */}
+          {/* Garment photo strip */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={cardStyles.garmentStrip}
             style={{ marginBottom: Spacing.md, marginTop: Spacing.sm }}
           >
-            {item.garments.map((g, gi) => (
-              <View
-                key={gi}
-                style={[cardStyles.garmentDot, { backgroundColor: g.attributes.color_hex || '#CCC' }]}
-              >
-                <Ionicons
-                  name={
-                    g.attributes.category === 'top'
-                      ? 'shirt-outline'
-                      : g.attributes.category === 'shoes'
-                      ? 'footsteps-outline'
-                      : g.attributes.category === 'bottom'
-                      ? 'layers-outline'
-                      : g.attributes.category === 'outerwear'
-                      ? 'umbrella-outline'
-                      : 'cube-outline'
-                  }
-                  size={20}
-                  color="rgba(255,255,255,0.85)"
-                />
-                <Text style={cardStyles.garmentLabel} numberOfLines={1}>
-                  {g.attributes.subcategory ?? g.attributes.category}
-                </Text>
-              </View>
-            ))}
+            {item.garments.map((g, gi) => {
+              const icon = CATEGORY_ICONS[g.attributes.category] || 'cube-outline';
+              return (
+                <TouchableOpacity
+                  key={gi}
+                  style={cardStyles.garmentPhotoCard}
+                  onPress={() => setSelectedGarment(g)}
+                  activeOpacity={0.75}
+                >
+                  {/* Photo or colour swatch fallback */}
+                  <View style={[cardStyles.garmentPhotoArea, { backgroundColor: g.attributes.color_hex || '#D0C8BE' }]}>
+                    {g.image_url ? (
+                      <Image
+                        source={{ uri: g.image_url }}
+                        style={StyleSheet.absoluteFillObject}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name={icon as any} size={22} color="rgba(255,255,255,0.75)" />
+                    )}
+                    {/* Tap hint overlay */}
+                    <View style={cardStyles.garmentPhotoHint}>
+                      <Ionicons name="eye-outline" size={11} color="rgba(255,255,255,0.9)" />
+                    </View>
+                  </View>
+                  {/* Label */}
+                  <Text style={cardStyles.garmentLabel} numberOfLines={1}>
+                    {g.attributes.subcategory ?? g.attributes.category}
+                  </Text>
+                  <Text style={cardStyles.garmentMeta} numberOfLines={1}>
+                    {g.attributes.color_primary}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
 
-          {/* Outfit name */}
-          <Text style={cardStyles.outfitName}>{item.name}</Text>
+          {/* Outfit name + grade pill */}
+          <View style={cardStyles.nameRow}>
+            <Text style={cardStyles.outfitName} numberOfLines={2}>{item.name}</Text>
+            {item.grade ? (
+              <View style={[cardStyles.gradePill, { borderColor: scoreColor(item.score.overall) }]}>
+                <Text style={[cardStyles.gradeText, { color: scoreColor(item.score.overall) }]}>
+                  {item.grade}
+                </Text>
+              </View>
+            ) : null}
+          </View>
 
           {/* Occasion tag */}
           <View style={cardStyles.occasionRow}>
             <Text style={cardStyles.occasionText}>
               {occasionEmoji(occasion)} {occasion.toUpperCase()}
             </Text>
+            <Text style={cardStyles.pieceCount}>{item.garments.length} pieces</Text>
           </View>
 
           {/* Score section */}
           <View style={cardStyles.scoreSection}>
-            {/* Big circle */}
+            {/* Big circle with grade inside */}
             <View style={[
               cardStyles.scoreCircle,
               { borderColor: scoreColor(item.score.overall) },
             ]}>
-              <Text style={[cardStyles.scoreValue, { color: scoreColor(item.score.overall) }]}>
-                {overallPct}
-              </Text>
-              <Text style={cardStyles.scoreUnit}>%</Text>
+              <View style={cardStyles.scoreInner}>
+                <Text style={[cardStyles.scoreValue, { color: scoreColor(item.score.overall) }]}>
+                  {overallPct}
+                </Text>
+                <Text style={cardStyles.scoreUnit}>%</Text>
+              </View>
+              {item.grade ? (
+                <Text style={[cardStyles.scoreGrade, { color: scoreColor(item.score.overall) }]}>
+                  {item.grade}
+                </Text>
+              ) : null}
             </View>
 
             {/* Score bars */}
@@ -380,7 +475,7 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
 
             <TouchableOpacity
               style={cardStyles.wearBtn}
-              onPress={() => onWear(item)}
+              onPress={() => setShowDatePicker(true)}
               activeOpacity={0.8}
             >
               <Ionicons name="checkmark-circle" size={16} color="#FFF" />
@@ -389,6 +484,30 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
           </View>
         </Animated.View>
       </Pressable>
+
+      {/* Date picker sub-modal */}
+      <OutfitDatePickerModal
+        isVisible={showDatePicker}
+        outfitName={item.name}
+        onClose={() => setShowDatePicker(false)}
+        onConfirm={(isoDate, reminder, displayLabel) => {
+          setShowDatePicker(false);
+          onWear(item, isoDate, reminder, displayLabel);
+        }}
+      />
+
+      {/* Garment detail sub-modal (read-only, no delete) */}
+      <GarmentDetailModal
+        visible={!!selectedGarment}
+        item={selectedGarment}
+        analysis={null}
+        loading={false}
+        onClose={() => setSelectedGarment(null)}
+        onDelete={() => {}}
+        onToggleFavorite={() => {}}
+        hideDelete
+        readOnly
+      />
     </Animated.View>
   );
 };
@@ -405,6 +524,15 @@ const cardStyles = StyleSheet.create({
     overflow: 'hidden',
     ...Shadow.md,
   },
+  // Gold accent for #1 ranked card
+  cardTop: {
+    borderColor: Colors.accentWarm,
+    borderWidth: 1.5,
+    shadowColor: Colors.accentWarm,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   rankBadge: {
     position: 'absolute',
     top: 0,
@@ -416,6 +544,49 @@ const cardStyles = StyleSheet.create({
   },
   rankText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 0.5 },
   garmentStrip: { flexDirection: 'row', gap: Spacing.sm, paddingRight: Spacing.sm },
+  // ── Photo card (Phase 9) ───────────────────────────────────────
+  garmentPhotoCard: {
+    width: 72,
+    alignItems: 'center',
+    gap: 4,
+  },
+  garmentPhotoArea: {
+    width: 72,
+    height: 88,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  garmentPhotoHint: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  garmentLabel: {
+    fontSize: 9,
+    color: Colors.textSecondary,
+    fontWeight: FontWeight.bold,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    maxWidth: 72,
+  },
+  garmentMeta: {
+    fontSize: 8,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    maxWidth: 72,
+    textTransform: 'capitalize',
+  },
+  // Legacy dot style (kept for reference but no longer used)
   garmentDot: {
     width: 60,
     height: 72,
@@ -425,24 +596,40 @@ const cardStyles = StyleSheet.create({
     gap: 4,
     paddingVertical: Spacing.sm,
   },
-  garmentLabel: {
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.8)',
-    fontWeight: FontWeight.bold,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    maxWidth: 56,
+  // Name row: name + grade pill side-by-side
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   outfitName: {
-    fontSize: FontSize.xl,
+    flex: 1,
+    fontSize: 20,
     fontWeight: FontWeight.black,
     color: Colors.textPrimary,
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    lineHeight: 26,
+  },
+  // Grade letter pill (e.g. "A", "B+")
+  gradePill: {
+    alignSelf: 'flex-start',
+    borderWidth: 2,
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 2,
+  },
+  gradeText: {
+    fontSize: 16,
+    fontWeight: FontWeight.black,
     letterSpacing: 0.5,
-    marginBottom: Spacing.sm,
   },
   occasionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: Spacing.md,
   },
   occasionText: {
@@ -452,25 +639,42 @@ const cardStyles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
+  pieceCount: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color: Colors.textMuted,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   scoreSection: {
     flexDirection: 'row',
     gap: Spacing.lg,
     alignItems: 'center',
     marginBottom: Spacing.sm,
   },
+  // Score circle now stacks number on top, grade below
   scoreCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
+    flexDirection: 'column',
     backgroundColor: Colors.background,
     flexShrink: 0,
   },
+  scoreInner: { flexDirection: 'row', alignItems: 'flex-end' },
   scoreValue: { fontSize: FontSize.xxl, fontWeight: FontWeight.black, letterSpacing: -1 },
-  scoreUnit: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 8, fontWeight: FontWeight.bold },
+  scoreUnit: { fontSize: FontSize.xs, color: Colors.textSecondary, marginBottom: 3, fontWeight: FontWeight.bold },
+  // Tiny grade label at bottom of circle
+  scoreGrade: {
+    fontSize: 11,
+    fontWeight: FontWeight.black,
+    letterSpacing: 1.5,
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
   scoreBars: { flex: 1 },
   actions: {
     flexDirection: 'row',
@@ -515,7 +719,8 @@ export interface AIOutfitResultsModalProps {
   scoringProfile: ScoringProfile;
   isLoading: boolean;
   onClose: () => void;
-  onWearOutfit: (outfit: OutfitResult) => void;
+  /** Called after user picks WEAR THIS + optional date/reminder */
+  onWearOutfit: (outfit: OutfitResult, plannedDate: string | null, reminder: ReminderSetting, displayLabel: string) => void;
   onShareOutfit: (outfit: OutfitResult) => void;
   onRegeneratePress: () => void;
   /** Fetch LLM detailed explanation for one outfit */

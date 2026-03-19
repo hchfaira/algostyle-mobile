@@ -1,18 +1,16 @@
 /**
- * ActionCard — Quiet Luxury "nude palette" smart-action card.
+ * ActionCard — ASOS editorial smart-action card.
  *
  * Design language:
- *  • 4 warm nude backgrounds — grège, argile, stone, blush — no white, no black fill
- *  • Espresso brown text (#3B2A1A) on all cards — soft, warm, high-contrast on nudes
- *  • Soft-rectangle shape: borderRadius 10 — rounded but structured
- *  • Cards are narrower than the viewport — next card peeks right (invites swipe)
- *  • Subtle inner-glow border (same hue, slightly darker) adds depth without hard lines
- *  • Fine shadow lifts each card like a swatch of fabric
- *  • Icon sits above spaced-uppercase title, CTA below in lighter weight
+ *  • Pure white background, 1 px #EEEEEE border — clean fashion canvas
+ *  • Near-black (#2D2D2D) text — maximum contrast, readable at a glance
+ *  • Uppercase spaced title + readable subtitle in one card
+ *  • Bold left accent bar (2 px) in the card's accent color
+ *  • Active card gets a black bottom border — editorial underline treatment
  *  • Press: micro scale-down (0.97) — card itself is the affordance
  */
 import React, { useEffect } from 'react';
-import { Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { Text, StyleSheet, Pressable, View, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
@@ -23,24 +21,12 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 
-import { Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-// Slightly narrower than the full width so the next card peeks — invites scrolling
-const PEEK = 28;
+const PEEK = 32;
 export const CARD_WIDTH = SCREEN_W - Spacing.lg * 2 - PEEK;
-
-// Espresso: warm dark brown — readable on all nude backgrounds
-const ESPRESSO = '#3B2A1A';
-
-// Per-card nude palette — near-white, barely-there warm tints
-const CARD_THEMES = [
-  { bg: '#FDFCFB', border: '#EDE9E4' }, // Blanc cassé pur — ivoire neutre
-  { bg: '#FCF9F6', border: '#EDE6DF' }, // Blanc crème — touche de vanille
-  { bg: '#FCF8F6', border: '#EDE5E0' }, // Blanc rosé — poudre de riz
-  { bg: '#FBFAF7', border: '#ECEAE3' }, // Blanc lin — fil naturel
-] as const;
 
 interface Props {
   icon: string;
@@ -48,52 +34,45 @@ interface Props {
   subtitle: string;
   buttonLabel: string;
   onPress: () => void;
-  accentColor: string;   // kept for API compat — not used visually
+  accentColor: string;
   variant: 'primary' | 'secondary';
   index?: number;
-  isActive?: boolean;    // true when this card is the snapped-to card in the carousel
+  isActive?: boolean;
 }
 
-export default function ActionCard({ icon, title, buttonLabel, onPress, index = 0, isActive = false }: Props) {
-  // ── Card press animation ──────────────────────────────────────────────
+export default function ActionCard({ icon, title, subtitle, buttonLabel, accentColor, onPress, index = 0, isActive = false }: Props) {
   const scale    = useSharedValue(1);
   const cardAnim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const onPressIn  = () => { scale.value = withSpring(0.97, { damping: 20, stiffness: 340 }); };
   const onPressOut = () => { scale.value = withSpring(1,    { damping: 16, stiffness: 300 }); };
 
-  // ── CTA fade-in + slide-up — fires on mount AND each time card becomes active ──
   const ctaOpacity    = useSharedValue(0);
-  const ctaTranslateY = useSharedValue(8);  // starts 8px below final position
+  const ctaTranslateY = useSharedValue(6);
 
   const triggerCta = () => {
     const easing = Easing.out(Easing.cubic);
-    // Reset instantly, then animate in
     ctaOpacity.value    = 0;
-    ctaTranslateY.value = 8;
-    ctaOpacity.value    = withTiming(1, { duration: 400, easing });
-    ctaTranslateY.value = withTiming(0, { duration: 380, easing });
+    ctaTranslateY.value = 6;
+    ctaOpacity.value    = withTiming(1, { duration: 320, easing });
+    ctaTranslateY.value = withTiming(0, { duration: 300, easing });
   };
 
-  // First appearance: slight delay so the card has time to settle into view
   useEffect(() => {
     const easing = Easing.out(Easing.cubic);
-    const delay  = 300 + index * 120;
-    ctaOpacity.value    = withDelay(delay, withTiming(1, { duration: 400, easing }));
-    ctaTranslateY.value = withDelay(delay, withTiming(0, { duration: 380, easing }));
+    const delay  = 200 + index * 100;
+    ctaOpacity.value    = withDelay(delay, withTiming(1, { duration: 320, easing }));
+    ctaTranslateY.value = withDelay(delay, withTiming(0, { duration: 300, easing }));
   }, []);
 
-  // Re-trigger every time this card snaps into the active position
   useEffect(() => {
     if (isActive) triggerCta();
   }, [isActive]);
 
   const ctaAnim = useAnimatedStyle(() => ({
-    opacity: ctaOpacity.value,
+    opacity:   ctaOpacity.value,
     transform: [{ translateY: ctaTranslateY.value }],
   }));
-
-  const theme = CARD_THEMES[index % CARD_THEMES.length];
 
   return (
     <Animated.View style={[styles.wrapper, cardAnim]}>
@@ -101,21 +80,30 @@ export default function ActionCard({ icon, title, buttonLabel, onPress, index = 
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        android_ripple={{ color: 'rgba(59,42,26,0.06)', borderless: false }}
-        style={[styles.card, { backgroundColor: theme.bg, borderColor: theme.border }]}
+        android_ripple={{ color: 'rgba(0,0,0,0.04)', borderless: false }}
+        style={[styles.card, isActive && styles.cardActive]}
       >
-        {/* Icon — fine, centred */}
-        <Ionicons name={icon as any} size={18} color={ESPRESSO} style={styles.icon} />
+        {/* Left accent bar */}
+        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
 
-        {/* Title — spaced uppercase */}
-        <Text style={styles.title} numberOfLines={1}>
-          {title.toUpperCase()}
-        </Text>
+        <View style={styles.content}>
+          {/* Icon + title row */}
+          <View style={styles.titleRow}>
+            <Ionicons name={icon as any} size={16} color={Colors.textPrimary} />
+            <Text style={styles.title} numberOfLines={1}>
+              {title.toUpperCase()}
+            </Text>
+          </View>
 
-        {/* CTA — fade-in + slide-up on mount */}
-        <Animated.Text style={[styles.cta, ctaAnim]} numberOfLines={1}>
-          {buttonLabel}
-        </Animated.Text>
+          {/* Subtitle — full sentence, readable */}
+          <Text style={styles.subtitle} numberOfLines={2}>{subtitle}</Text>
+
+          {/* CTA label */}
+          <Animated.View style={[styles.ctaRow, ctaAnim]}>
+            <Text style={[styles.cta, { color: accentColor }]}>{buttonLabel}</Text>
+            <Ionicons name="arrow-forward" size={10} color={accentColor} />
+          </Animated.View>
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -123,41 +111,65 @@ export default function ActionCard({ icon, title, buttonLabel, onPress, index = 
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: CARD_WIDTH,
-    marginRight: Spacing.sm,   // gap between cards
+    width:       CARD_WIDTH,
+    marginRight: Spacing.sm,
   },
   card: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 90,
-    borderWidth: 1,
-    borderRadius: 10,
-    gap: 4,
-    // Fabric-swatch shadow — soft and wide
-    shadowColor: '#3B2A1A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 2,
+    flexDirection:    'row',
+    alignItems:       'stretch',
+    backgroundColor:  Colors.surface,
+    borderWidth:      1,
+    borderColor:      Colors.border,
+    minHeight:        88,
+    shadowColor:      '#000',
+    shadowOffset:     { width: 0, height: 1 },
+    shadowOpacity:    0.05,
+    shadowRadius:     4,
+    elevation:        2,
   },
-  icon: {
-    marginBottom: 1,
+  cardActive: {
+    borderColor:       Colors.accent,
+    borderBottomWidth: 2,
+  },
+  accentBar: {
+    width: 3,
+  },
+  content: {
+    flex:              1,
+    paddingVertical:   12,
+    paddingHorizontal: 14,
+    gap:               4,
+    justifyContent:    'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           6,
+    marginBottom:  2,
   },
   title: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.black,
-    letterSpacing: 2.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    color: ESPRESSO,
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.black,
+    letterSpacing: 1.8,
+    color:         Colors.textPrimary,
+  },
+  subtitle: {
+    fontSize:   FontSize.sm,
+    color:      Colors.textSecondary,
+    lineHeight: 18,
+    fontWeight: FontWeight.regular,
+  },
+  ctaRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           4,
+    marginTop:     4,
   },
   cta: {
-    fontSize: 10,
-    fontWeight: FontWeight.regular,
-    letterSpacing: 1,
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.black,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
-    textAlign: 'center',
-    color: ESPRESSO + 'AA',   // 67% opacity — muted but warm
   },
 });
 

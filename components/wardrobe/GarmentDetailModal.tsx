@@ -34,6 +34,10 @@ interface Props {
   onClose: () => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  /** When true the Delete action is hidden (e.g. opened from an outfit view) */
+  hideDelete?: boolean;
+  /** When true both Delete and Favourite actions are hidden */
+  readOnly?: boolean;
 }
 
 function ScoreBar({ label, value, color }: { label: string; value: number; color: string }) {
@@ -64,6 +68,8 @@ export default function GarmentDetailModal({
   onClose,
   onDelete,
   onToggleFavorite,
+  hideDelete = false,
+  readOnly = false,
 }: Props) {
   if (!item) return null;
 
@@ -102,24 +108,28 @@ export default function GarmentDetailModal({
                 </View>
               </View>
               <View style={styles.heroActions}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => onToggleFavorite(item.id)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={item.is_favorite ? 'heart' : 'heart-outline'}
-                    size={20}
-                    color={item.is_favorite ? Colors.error : Colors.textMuted}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => { onDelete(item.id); onClose(); }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={20} color={Colors.textMuted} />
-                </TouchableOpacity>
+                {!readOnly && (
+                  <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={() => onToggleFavorite(item.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={item.is_favorite ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={item.is_favorite ? Colors.error : Colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                )}
+                {!readOnly && !hideDelete && (
+                  <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={() => { onDelete(item.id); onClose(); }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 

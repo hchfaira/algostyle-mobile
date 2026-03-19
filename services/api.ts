@@ -1,6 +1,7 @@
 /**
  * API Service — communicates with the FastAPI backend
  */
+import { Platform } from 'react-native';
 import { API_BASE_URL } from '../constants/config';
 import type {
   AuthResponse,
@@ -247,15 +248,37 @@ class ApiService {
   }
 
   // ─── Recommendations ──────────────────────────
-  async getRecommendations(config: {
-    occasion?: Occasion;
-    scoring_profile?: ScoringProfile;
-    top_k?: number;
-  }): Promise<RecommendationResponse> {
-    return this.request('/api/v1/recommend/outfits', {
+  async getRecommendations(
+    config: {
+      occasion?: Occasion;
+      scoring_profile?: ScoringProfile;
+      top_k?: number;
+      garment_ids?: string[];
+    },
+    userId?: string,
+  ): Promise<RecommendationResponse> {
+    const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request(`/api/v1/recommend/outfits${qs}`, {
       method: 'POST',
       body: JSON.stringify(config),
     });
+  }
+
+  /** Fetch live weather + time-of-day context snapshot. */
+  async getContext(city?: string): Promise<{
+    temperature_celsius: number;
+    feels_like_celsius: number;
+    condition: string;
+    condition_code: number;
+    humidity: number;
+    city_name: string;
+    time_of_day: 'morning' | 'afternoon' | 'evening' | 'night';
+    ai_context_summary: string;
+    cached: boolean;
+    error?: string;
+  }> {
+    const qs = city ? `?city=${encodeURIComponent(city)}` : '';
+    return this.request(`/api/v1/recommend/context${qs}`);
   }
 
   async explainOutfit(
@@ -331,6 +354,96 @@ class ApiService {
     });
   }
 
+  /** PATCH /api/v1/outfits/{id}/plan — update planned_date, reminder, etc. */
+  async updateOutfitPlan(
+    userId: string,
+    outfitId: string,
+    patch: {
+      planned_date?: string | null;      // ISO-8601 or null to clear
+      reminder?: { type: string; minutes_before: number } | null;
+      user_timezone?: string;
+      name?: string;
+      description?: string;
+    },
+  ): Promise<CustomOutfit> {
+    return this.request(`/api/v1/outfits/${outfitId}/plan?user_id=${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
+  /** GET /api/v1/outfits/week — outfits planned in the next 7 days */
+  async getWeekOutfits(userId: string): Promise<{ outfits: CustomOutfit[]; total: number }> {
+    return this.request(`/api/v1/outfits/week?user_id=${userId}`);
+  }
+
+  /** GET /api/v1/outfits/list with optional upcoming/past filter */
+  async listOutfits(
+    userId: string,
+    options?: { upcomingOnly?: boolean; pastOnly?: boolean },
+  ): Promise<{ outfits: CustomOutfit[]; total: number }> {
+    const qs = new URLSearchParams({ user_id: userId });
+    if (options?.upcomingOnly) qs.set('upcoming_only', 'true');
+    if (options?.pastOnly)     qs.set('past_only', 'true');
+    return this.request(`/api/v1/outfits/list?${qs}`);
+  }
+
+  /**
+   * Score a worn-outfit photo — returns scores + improvement tips.
+   */
+  async scoreOutfitPhoto(
+    userId: string,
+    imageBase64: string,
+  ): Promise<{
+    overall: number;
+    color_harmony: number;
+    formality_match: number;
+    proportion: number;
+    creativity: number;
+    summary: string;
+    improvements: string[];
+    style_score_label: string;
+  }> {
+    const form = this.base64ToFormData(imageBase64, 'image');
+    const url = `${this.baseUrl}/api/v1/outfits/score-photo?user_id=${userId}`;
+    const headers: Record<string, string> = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Score photo error ${res.status}: ${body}`);
+    }
+    return res.json();
+  }
+
+  /**
+   * Generate an outfit from a natural language prompt.
+   */
+  async outfitFromPrompt(
+    userId: string,
+    prompt: string,
+  ): Promise<{
+    name: string;
+    description: string;
+    mood: string;
+    pieces: Array<{ label: string; category: string; color: string }>;
+    score: number;
+    styling_tip: string;
+    prompt: string;
+  }> {
+    const form = new FormData();
+    form.append('prompt', prompt);
+    const url = `${this.baseUrl}/api/v1/outfits/from-prompt?user_id=${userId}`;
+    const headers: Record<string, string> = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Prompt outfit error ${res.status}: ${body}`);
+    }
+    return res.json();
+  }
+
   // ─── Image Consulting ─────────────────────────
   async analyzeImageConsulting(
     userId: string,
@@ -339,7 +452,17 @@ class ApiService {
     weightKg?: number,
   ): Promise<ImageConsultingResult> {
     const form = new FormData();
-    form.append('image', { uri: imageUri, name: 'consulting_photo.jpg', type: 'image/jpeg' } as any);
+    if (Platform.OS === 'web') {
+      // On web, imageUri is a blob: URL from URL.createObjectURL().
+      // We must fetch it as a Blob and append it as a File — the RN
+      // { uri, name, type } object format only works in React Native.
+      const blobRes = await fetch(imageUri);
+      const blob    = await blobRes.blob();
+      form.append('image', new File([blob], 'consulting_photo.jpg', { type: blob.type || 'image/jpeg' }));
+    } else {
+      // React Native: pass the file-reference object
+      form.append('image', { uri: imageUri, name: 'consulting_photo.jpg', type: 'image/jpeg' } as any);
+    }
     if (heightCm !== undefined) form.append('height_cm', String(heightCm));
     if (weightKg !== undefined) form.append('weight_kg', String(weightKg));
 

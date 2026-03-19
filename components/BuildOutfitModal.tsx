@@ -3,61 +3,78 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  Dimensions,
   TouchableOpacity,
   Alert,
   ScrollView,
   TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  FadeInUp,
-  FadeOutDown,
-} from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
-import { Button, Card, Chip } from './ui';
+import { AIOutfitResultsModal } from './AIOutfitResultsModal';
 import { Colors, Spacing, BorderRadius, FontSize, FontWeight } from '../constants/theme';
+import CategoryRow from './wardrobe/CategoryRow';
+import GarmentFilterBar from './wardrobe/GarmentFilterBar';
+import { BROWSABLE_CATEGORIES, CATEGORIES } from './wardrobe/constants';
 import type { GarmentItem, GarmentCategory } from '../types';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const GRID_COLS = 2;
-const ITEM_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / GRID_COLS;
+import type { OutfitResult } from '../types/schemas/recommendation';
 
 interface BuildOutfitModalProps {
   isVisible: boolean;
   onClose: () => void;
 }
 
-const CATEGORIES: GarmentCategory[] = [
-  'top',
-  'bottom',
-  'dress',
-  'outerwear',
-  'shoes',
-  'accessory',
-];
-
 export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
   isVisible,
   onClose,
 }) => {
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<GarmentCategory | null>(null);
-  const [outfitName, setOutfitName] = useState('');
+  const [selectedItems, setSelectedItems]         = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory]   = useState<GarmentCategory | 'all'>('all');
+  const [colorFilter, setColorFilter]             = useState<string | null>(null);
+  const [formalityFilter, setFormalityFilter]     = useState<string | null>(null);
+  const [outfitName, setOutfitName]               = useState('');
   const [outfitDescription, setOutfitDescription] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating]               = useState(false);
+  const [isScoring, setIsScoring]                 = useState(false);
+  const [scoreResults, setScoreResults]           = useState<OutfitResult[]>([]);
+  const [showResults, setShowResults]             = useState(false);
 
   const { wardrobe, userId, addCustomOutfit } = useAppStore();
+  const effectiveUserId = userId || (__DEV__ ? 'dev-test-user' : undefined);
 
-  // Filter wardrobe by category
-  const filteredItems = useMemo(() => {
-    if (!selectedCategory) {
-      return wardrobe;
-    }
+  // Items visible in the current category selection
+  const categoryFilteredItems = useMemo(() => {
+    if (selectedCategory === 'all') return wardrobe;
     return wardrobe.filter((item) => item.attributes.category === selectedCategory);
   }, [wardrobe, selectedCategory]);
+
+  // Items after secondary color + formality filter (feeds GarmentFilterBar options)
+  const filteredItems = useMemo(() => {
+    return categoryFilteredItems.filter((item) => {
+      if (colorFilter && item.attributes.color_hex !== colorFilter) return false;
+      if (formalityFilter && item.attributes.formality !== formalityFilter) return false;
+      return true;
+    });
+  }, [categoryFilteredItems, colorFilter, formalityFilter]);
+
+  // Items grouped by BROWSABLE_CATEGORIES order for the sections view
+  const itemsByCategory = useMemo(() => {
+    const map: Record<string, GarmentItem[]> = {};
+    BROWSABLE_CATEGORIES.forEach(({ key }) => {
+      map[key] = filteredItems.filter((g) => g.attributes.category === key);
+    });
+    return map;
+  }, [filteredItems]);
+
+  // Which category sections to render
+  const visibleSections = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return BROWSABLE_CATEGORIES.filter((c) => (itemsByCategory[c.key]?.length ?? 0) > 0);
+    }
+    return BROWSABLE_CATEGORIES.filter((c) => c.key === selectedCategory);
+  }, [selectedCategory, itemsByCategory]);
 
   const handleSelectItem = (itemId: string) => {
     setSelectedItems((prev) =>
@@ -67,28 +84,68 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
     );
   };
 
+  // ── Score selected items via HybridOutfitRecommender ──────────
+  const handleScoreOutfit = async () => {
+    if (selectedItems.length === 0) {
+      Alert.alert('Select items', 'Pick at least 2 pieces to score your outfit.');
+      return;
+    }
+    if (selectedItems.length < 2) {
+      Alert.alert('Select more items', 'Pick at least 2 pieces for a meaningful score.');
+      return;
+    }
+    if (!effectiveUserId) {
+      Alert.alert('Error', 'User ID not found');
+      return;
+    }
+
+    try {
+      setIsScoring(true);
+      const response = await api.getRecommendations(
+        {
+          occasion: 'casual',
+          top_k: 1,
+          garment_ids: selectedItems,
+        },
+        effectiveUserId
+      );
+      if (response.outfits && response.outfits.length > 0) {
+        // Give the outfit the user's chosen name if provided
+        const results = response.outfits.map((o, i) =>
+          i === 0 && outfitName.trim()
+            ? { ...o, name: outfitName.trim() }
+            : o
+        );
+        setScoreResults(results);
+        setShowResults(true);
+      } else {
+        Alert.alert('No result', 'The AI could not score this combination — try different items.');
+      }
+    } catch (err) {
+      Alert.alert('Scoring failed', err instanceof Error ? err.message : 'Could not reach the AI server.');
+    } finally {
+      setIsScoring(false);
+    }
+  };
+
+  // ── Save outfit without scoring ────────────────────────────────
   const handleCreateOutfit = async () => {
     if (!outfitName.trim()) {
       Alert.alert('Error', 'Please enter an outfit name');
       return;
     }
-
     if (selectedItems.length === 0) {
       Alert.alert('Error', 'Please select at least one item');
       return;
     }
-
-    if (!userId) {
+    if (!effectiveUserId) {
       Alert.alert('Error', 'User ID not found');
       return;
     }
 
     try {
       setIsCreating(true);
-
-      // Get selected garments
-      // Create outfit via API
-      const response = await api.createCustomOutfit(userId, {
+      const response = await api.createCustomOutfit(effectiveUserId, {
         name: outfitName,
         description: outfitDescription || undefined,
         garmentIds: selectedItems,
@@ -96,18 +153,13 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
       });
 
       if (response.success && response.outfit) {
-        // Update Zustand store
         addCustomOutfit(response.outfit);
-
-        Alert.alert('Success', `Outfit "${outfitName}" created!`);
+        Alert.alert('Saved', `"${outfitName}" saved to your wardrobe!`);
         resetForm();
         onClose();
       }
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to create outfit'
-      );
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create outfit');
     } finally {
       setIsCreating(false);
     }
@@ -115,195 +167,236 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
 
   const resetForm = () => {
     setSelectedItems([]);
-    setSelectedCategory(null);
+    setSelectedCategory('all');
+    setColorFilter(null);
+    setFormalityFilter(null);
     setOutfitName('');
     setOutfitDescription('');
-  };
-
-  const renderGarmentItem = ({ item }: { item: GarmentItem }) => {
-    const isSelected = selectedItems.includes(item.id);
-    const itemColor = item.attributes.color_hex || item.attributes.color_primary || Colors.surface;
-
-    return (
-      <TouchableOpacity
-        onPress={() => handleSelectItem(item.id)}
-        style={[styles.itemWrapper]}
-      >
-        <Card style={isSelected ? styles.itemCardSelected : styles.itemCard}>
-          {/* Color Swatch */}
-          <View
-            style={[
-              styles.colorSwatch,
-              { backgroundColor: itemColor },
-            ]}
-          />
-
-          {/* Selection Indicator */}
-          {isSelected && (
-            <View style={styles.checkmark}>
-              <Text style={styles.checkmarkText}>✓</Text>
-            </View>
-          )}
-
-          {/* Item Info */}
-          <Text
-            style={styles.itemName}
-            numberOfLines={1}
-          >
-            {item.attributes.subcategory || item.attributes.category}
-          </Text>
-
-          <Text
-            style={styles.itemCategory}
-            numberOfLines={1}
-          >
-            {item.attributes.category}
-          </Text>
-        </Card>
-      </TouchableOpacity>
-    );
+    setScoreResults([]);
   };
 
   if (!isVisible) return null;
 
-  return (
-    <Animated.View
-      entering={FadeInUp}
-      exiting={FadeOutDown}
-      style={styles.container}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>👁️ Build Outfit</Text>
-        <TouchableOpacity onPress={onClose}>
-          <Text style={styles.closeButton}>✕</Text>
-        </TouchableOpacity>
-      </View>
+  // ── Show AI results after scoring ─────────────────────────────
+  if (showResults) {
+    return (
+      <AIOutfitResultsModal
+        isVisible
+        outfits={scoreResults}
+        occasion="casual"
+        scoringProfile="casual"
+        isLoading={false}
+        onClose={() => {
+          setShowResults(false);
+          resetForm();
+          onClose();
+        }}
+        onWearOutfit={(outfit, _plannedDate, _reminder, _label) => {
+          setShowResults(false);
+          resetForm();
+          onClose();
+          Alert.alert('Outfit Selected', `"${outfit.name}" selected! Schedule it in the Agenda below.`);
+        }}
+        onShareOutfit={(outfit) => Alert.alert('Share', `Sharing "${outfit.name}"…`)}
+        onRegeneratePress={() => setShowResults(false)}
+        onRequestDetailedExplanation={async (outfitId) => {
+          const target = scoreResults.find((o) => o.id === outfitId);
+          if (!target) return { outfit_id: outfitId, style_notes: [], styling_tips: [] };
+          try {
+            const resp = await api.explainOutfit(target, 'casual', 'casual', 'detailed');
+            return {
+              detailed: resp.detailed,
+              styleNotes: resp.style_notes,
+              colorNote: resp.color_note,
+              occasionNote: resp.occasion_note,
+              stylingTips: resp.styling_tips,
+            };
+          } catch {
+            return { outfit_id: outfitId, style_notes: [], styling_tips: [] };
+          }
+        }}
+      />
+    );
+  }
 
-      <ScrollView
-        style={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Outfit Name Input */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Outfit Name</Text>
+  return (
+    <Animated.View entering={FadeInUp} exiting={FadeOutDown} style={styles.container}>
+      {/* ── Compact header: title + name input inline ── */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Build Outfit</Text>
           <TextInput
-            style={styles.input}
-            placeholder="e.g., Casual Friday Vibes"
+            style={styles.nameInput}
+            placeholder="Name this outfit…"
             placeholderTextColor={Colors.textMuted}
             value={outfitName}
             onChangeText={setOutfitName}
             maxLength={50}
+            returnKeyType="done"
           />
         </View>
+        <TouchableOpacity
+          style={styles.closeBtn}
+          onPress={onClose}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="close" size={20} color={Colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
 
-        {/* Outfit Description Input */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description (Optional)</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Add notes about this outfit..."
-            placeholderTextColor={Colors.textMuted}
-            value={outfitDescription}
-            onChangeText={setOutfitDescription}
-            multiline
-            numberOfLines={3}
-            maxLength={150}
-          />
-        </View>
+      {/* ── Category chip strip + filter button (single row) ── */}
+      <View style={styles.controlRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryStripContent}
+          style={{ flex: 1 }}
+        >
+          {CATEGORIES.map(({ key, label }) => {
+            const isActive = selectedCategory === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.catChip, isActive && styles.catChipActive]}
+                onPress={() => {
+                  setSelectedCategory(key as GarmentCategory | 'all');
+                  setColorFilter(null);
+                  setFormalityFilter(null);
+                }}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.catChipLabel, isActive && styles.catChipLabelActive]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-        {/* Category Filter */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Filter by Category</Text>
+      {/* ── Filter bar (compact — no sort chips) ── */}
+      <GarmentFilterBar
+        items={categoryFilteredItems}
+        totalCount={filteredItems.length}
+        colorFilter={colorFilter}
+        formalityFilter={formalityFilter}
+        onColorChange={setColorFilter}
+        onFormalityChange={setFormalityFilter}
+        sortMode="default"
+        onChangeSortMode={() => {}}
+        hideSortBar
+      />
+
+      {/* ── Selected items strip ── */}
+      {selectedItems.length > 0 && (
+        <View style={styles.selectedBar}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
+            contentContainerStyle={styles.selectedBarContent}
           >
-            <Chip
-              label="All"
-              selected={selectedCategory === null}
-              onPress={() => setSelectedCategory(null)}
-            />
-            {CATEGORIES.map((category) => (
-              <Chip
-                key={category}
-                label={category}
-                selected={selectedCategory === category}
-                onPress={() => setSelectedCategory(category as GarmentCategory)}
-              />
-            ))}
+            {selectedItems.map((id) => {
+              const item = wardrobe.find((w) => w.id === id);
+              if (!item) return null;
+              return (
+                <TouchableOpacity
+                  key={id}
+                  style={styles.selectedPill}
+                  onPress={() => handleSelectItem(id)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.selectedPillLabel} numberOfLines={1}>
+                    {item.attributes.subcategory || item.attributes.category}
+                  </Text>
+                  <Ionicons name="close-circle" size={13} color="rgba(255,255,255,0.8)" />
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
+          <TouchableOpacity
+            style={styles.clearAllBtn}
+            onPress={() => setSelectedItems([])}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="close" size={12} color={Colors.textMuted} />
+          </TouchableOpacity>
         </View>
+      )}
 
-        {/* Selected Items Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Selected Items ({selectedItems.length})
-          </Text>
-          {selectedItems.length > 0 ? (
-            <View style={styles.selectedSummary}>
-              {selectedItems.map((itemId) => {
-                const item = wardrobe.find((w) => w.id === itemId);
-                return item ? (
-                  <Chip
-                    key={itemId}
-                    label={`${item.attributes.subcategory || item.attributes.category} (${item.attributes.color_primary})`}
-                    onPress={() => handleSelectItem(itemId)}
-                    selected
-                  />
-                ) : null;
-              })}
-            </View>
-          ) : (
-            <Text style={styles.emptyText}>No items selected yet</Text>
-          )}
-        </View>
-
-        {/* Wardrobe Grid */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Select Items ({filteredItems.length})
-          </Text>
-          {filteredItems.length > 0 ? (
-            <FlatList
-              data={filteredItems}
-              renderItem={renderGarmentItem}
-              keyExtractor={(item) => item.id}
-              numColumns={GRID_COLS}
-              scrollEnabled={false}
-              columnWrapperStyle={styles.gridRow}
-              contentContainerStyle={styles.gridContent}
+      {/* ── Garment sections ── */}
+      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+        {filteredItems.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="shirt-outline" size={38} color={Colors.border} />
+            <Text style={styles.emptyStateText}>No items match these filters</Text>
+          </View>
+        ) : (
+          visibleSections.map((cat, i) => (
+            <CategoryRow
+              key={cat.key}
+              categoryKey={cat.key}
+              label={cat.label}
+              emoji={cat.emoji}
+              items={itemsByCategory[cat.key] ?? []}
+              sectionIndex={i}
+              selectedItems={selectedItems}
+              onPressItem={(item) => handleSelectItem(item.id)}
+              onDeleteItem={() => {}}
+              onToggleFavorite={() => {}}
+              selectionMode
             />
-          ) : (
-            <Text style={styles.emptyText}>No items in this category</Text>
-          )}
-        </View>
+          ))
+        )}
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Action Buttons */}
+      {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(255, 255, 255, 0)', Colors.background]}
+        colors={['rgba(255,255,255,0)', Colors.background]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.actionGradient}
+        end={{ x: 0, y: 0.45 }}
+        style={styles.footer}
       >
-        <View style={styles.actionButtons}>
-          <Button
-            title="Cancel"
-            variant="outline"
-            onPress={() => {
-              resetForm();
-              onClose();
-            }}
-            style={styles.cancelButton}
-          />
-          <Button
-            title={isCreating ? 'Creating...' : '✓ Create Outfit'}
+        {/* Score button — full width, primary CTA */}
+        <TouchableOpacity
+          style={[
+            styles.scoreButton,
+            (selectedItems.length < 2 || isScoring) && styles.scoreButtonDisabled,
+          ]}
+          onPress={handleScoreOutfit}
+          disabled={selectedItems.length < 2 || isScoring}
+          activeOpacity={0.82}
+        >
+          <Ionicons name="sparkles" size={15} color="#FFF" />
+          <Text style={styles.scoreButtonText}>
+            {isScoring
+              ? 'Scoring…'
+              : selectedItems.length < 2
+                ? 'Select 2+ items to score'
+                : `Score Outfit · ${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''}`}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Secondary row: Cancel + Save */}
+        <View style={styles.footerSecondary}>
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => { resetForm(); onClose(); }}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.cancelBtnLabel}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.saveBtn,
+              (isCreating || selectedItems.length === 0 || !outfitName.trim()) && styles.saveBtnDisabled,
+            ]}
             onPress={handleCreateOutfit}
             disabled={isCreating || selectedItems.length === 0 || !outfitName.trim()}
-            style={styles.createButton}
-          />
+            activeOpacity={0.82}
+          >
+            <Text style={styles.saveBtnLabel}>{isCreating ? 'Saving…' : 'Save Only'}</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </Animated.View>
@@ -321,141 +414,205 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     flexDirection: 'column',
   },
+
+  // ── Header: title + inline name input + close ────────────────
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
-  },
-  title: {
-    fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-  },
-  closeButton: {
-    fontSize: FontSize.lg,
-    color: Colors.textMuted,
-    padding: Spacing.sm,
-  },
-  scrollContent: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  section: {
-    marginBottom: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    marginBottom: Spacing.sm,
-    letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Colors.textPrimary,
-    fontSize: FontSize.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  textArea: {
-    paddingVertical: Spacing.md,
-    textAlignVertical: 'top',
-  },
-  categoryScroll: {
-    marginHorizontal: -Spacing.lg,
-    paddingHorizontal: Spacing.lg,
-  },
-  categoryChip: {
-    marginRight: Spacing.sm,
-  },
-  selectedSummary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
     gap: Spacing.sm,
   },
-  selectedChip: {
-    marginBottom: Spacing.sm,
+  headerLeft: {
+    flex: 1,
+    gap: 4,
   },
-  emptyText: {
+  title: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.black,
+    color: Colors.textPrimary,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  nameInput: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.medium,
+    color: Colors.textPrimary,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    borderBottomWidth: 1.5,
+    borderBottomColor: Colors.accent,
+    backgroundColor: 'transparent',
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ── Category chip row ────────────────────────────────────────
+  controlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  categoryStripContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 8,
+    gap: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  catChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceLight,
+  },
+  catChipActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  catChipLabel: {
+    fontSize: 11,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textSecondary,
+  },
+  catChipLabelActive: {
+    color: '#FFF',
+  },
+
+  // ── Selected items bar ───────────────────────────────────────
+  selectedBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+    paddingRight: 8,
+    maxHeight: 42,
+  },
+  selectedBarContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 7,
+    gap: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.accent,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    maxWidth: 120,
+  },
+  selectedPillLabel: {
+    fontSize: 11,
+    fontWeight: FontWeight.semibold,
+    color: '#FFF',
+    flexShrink: 1,
+  },
+  clearAllBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    flexShrink: 0,
+  },
+
+  // ── Garment body ─────────────────────────────────────────────
+  scrollBody: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+    gap: Spacing.md,
+  },
+  emptyStateText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
     fontStyle: 'italic',
   },
-  gridRow: {
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-  },
-  gridContent: {
-    paddingBottom: Spacing.lg,
-  },
-  itemWrapper: {
-    width: ITEM_WIDTH,
-    marginHorizontal: (Spacing.md / 2),
-  },
-  itemCard: {
-    padding: Spacing.sm,
-    position: 'relative',
-  },
-  itemCardSelected: {
-    borderWidth: 2,
-    borderColor: Colors.accent,
-  },
-  colorSwatch: {
-    width: '100%',
-    height: 80,
-    borderRadius: BorderRadius.sm,
-    marginBottom: Spacing.sm,
-  },
-  checkmark: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    backgroundColor: Colors.accent,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmarkText: {
-    fontSize: FontSize.lg,
-    color: Colors.background,
-    fontWeight: FontWeight.bold,
-  },
-  itemName: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
-  itemCategory: {
-    fontSize: FontSize.xs,
-    color: Colors.textMuted,
-  },
-  actionGradient: {
+
+  // ── Footer ───────────────────────────────────────────────────
+  footer: {
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xl,
+    gap: 10,
   },
-  actionButtons: {
+  scoreButton: {
     flexDirection: 'row',
-    gap: Spacing.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: Colors.accent,
+    borderRadius: BorderRadius.full,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
   },
-  cancelButton: {
-    flex: 1,
+  scoreButtonDisabled: {
+    opacity: 0.42,
   },
-  createButton: {
+  scoreButtonText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: '#FFF',
+    letterSpacing: 0.1,
+  },
+  footerSecondary: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  cancelBtn: {
     flex: 1,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  cancelBtnLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textSecondary,
+  },
+  saveBtn: {
+    flex: 1,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    backgroundColor: Colors.background,
+  },
+  saveBtnDisabled: {
+    opacity: 0.4,
+  },
+  saveBtnLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: Colors.accent,
   },
 });
+

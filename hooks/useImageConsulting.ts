@@ -2,7 +2,7 @@
  * useImageConsulting — Async state for image consulting analysis
  */
 import { useState, useEffect, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { api } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
@@ -83,27 +83,35 @@ export function useImageConsulting() {
     setConsultingResult, setLoadingConsulting, setConsultingError,
   } = useAppStore();
 
+  // In dev, fall back to a fixed dev user so the modal always opens
+  const effectiveUserId = userId ?? (__DEV__ ? 'dev-test-user' : null);
+
   const [showModal, setShowModal] = useState(false);
 
   // Load cached result on mount
   useEffect(() => {
-    if (USE_MOCK || !userId || consultingResult) return;
+    console.log('[IC] mount effect — USE_MOCK:', USE_MOCK, 'effectiveUserId:', effectiveUserId, 'consultingResult:', !!consultingResult);
+    if (USE_MOCK || !effectiveUserId || consultingResult) return;
     (async () => {
       try {
         setLoadingConsulting(true);
-        const result = await api.getImageConsultingResult(userId);
+        console.log('[IC] fetching result from backend for', effectiveUserId);
+        const result = await api.getImageConsultingResult(effectiveUserId);
+        console.log('[IC] got result — body_shape:', result.body_shape, 'color_season:', result.color_season);
         setConsultingResult(result);
-      } catch {
+      } catch (e: any) {
         // 404 = no result yet — fine, show empty state
+        console.log('[IC] getResult error (likely 404):', e?.message);
       } finally {
         setLoadingConsulting(false);
       }
     })();
-  }, [userId]);
+  }, [effectiveUserId]);
 
   const handleAnalyze = useCallback(
     async (imageUri: string, heightCm: number | undefined, weightKg: number | undefined) => {
-      if (!userId && !USE_MOCK) {
+      console.log('[IC] handleAnalyze called — imageUri:', imageUri?.slice(0, 60), 'USE_MOCK:', USE_MOCK, 'effectiveUserId:', effectiveUserId);
+      if (!effectiveUserId && !USE_MOCK) {
         Alert.alert('Not logged in', 'Please log in to run the analysis.');
         return;
       }
@@ -113,6 +121,7 @@ export function useImageConsulting() {
 
       if (USE_MOCK) {
         // Simulate a realistic loading delay
+        console.log('[IC] handleAnalyze — USE_MOCK mode, returning mock result');
         await new Promise(r => setTimeout(r, 1800));
         setConsultingResult(MOCK_RESULT);
         setLoadingConsulting(false);
@@ -120,7 +129,9 @@ export function useImageConsulting() {
       }
 
       try {
-        const result = await api.analyzeImageConsulting(userId!, imageUri, heightCm, weightKg);
+        console.log('[IC] handleAnalyze — calling real API with userId:', effectiveUserId, 'imageUri:', imageUri?.slice(0, 60));
+        const result = await api.analyzeImageConsulting(effectiveUserId!, imageUri, heightCm, weightKg);
+        console.log('[IC] analyzeImageConsulting success — body_shape:', result.body_shape);
         setConsultingResult(result);
       } catch (err: any) {
         const msg = err?.message ?? 'Analysis failed. Please try again.';
@@ -136,16 +147,17 @@ export function useImageConsulting() {
         setLoadingConsulting(false);
       }
     },
-    [userId],
+    [effectiveUserId],
   );
 
   // In mock mode: skip the photo modal, run analysis directly.
   const openModal = () => {
+    console.log('[IC] openModal — USE_MOCK:', USE_MOCK, 'effectiveUserId:', effectiveUserId);
     if (USE_MOCK) {
       handleAnalyze('mock://photo', undefined, undefined);
       return;
     }
-    if (!userId) {
+    if (!effectiveUserId) {
       Alert.alert('Not signed in', 'Please sign in or continue as guest to use Image Consulting.');
       return;
     }
@@ -153,7 +165,7 @@ export function useImageConsulting() {
   };
 
   return {
-    userId,
+    userId: effectiveUserId,
     profile,
     consultingResult,
     isLoadingConsulting,
