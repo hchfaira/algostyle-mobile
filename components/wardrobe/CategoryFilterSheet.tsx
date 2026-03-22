@@ -148,7 +148,7 @@ export default function CategoryFilterSheet({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   sheet: {
     position: 'absolute',
@@ -157,17 +157,17 @@ const styles = StyleSheet.create({
     right: 0,
     height: SHEET_HEIGHT,
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
     paddingBottom: Spacing.xl,
   },
   handle: {
-    width: 36,
+    width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: BorderRadius.full,
     backgroundColor: Colors.border,
     alignSelf: 'center',
-    marginTop: Spacing.sm,
+    marginTop: Spacing.sm + 2,
     marginBottom: Spacing.sm,
   },
   header: {
@@ -181,9 +181,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.black,
+    fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
   toggleAll: {
     fontSize: FontSize.sm,
@@ -203,10 +203,10 @@ const styles = StyleSheet.create({
     gap: 6,
     width: '47%',
     paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.lg,
     backgroundColor: Colors.surfaceLight,
   },
   cellActive: {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   cellLabel: {
     flex: 1,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.medium,
     color: Colors.textSecondary,
   },
   cellLabelActive: {
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   cellCount: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.semibold,
     color: Colors.textMuted,
   },
   cellCountActive: {
@@ -236,16 +236,16 @@ const styles = StyleSheet.create({
   doneBtn: {
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.md,
-    height: 44,
+    height: 46,
     backgroundColor: Colors.accent,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   doneBtnText: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.black,
+    fontWeight: FontWeight.bold,
     color: Colors.textOnAccent,
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
 });

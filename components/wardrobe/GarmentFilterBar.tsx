@@ -206,7 +206,7 @@ export default function GarmentFilterBar({
       {/* ── Bottom sheet ─────────────────────────────────────────────────── */}
       {open && (
         <Modal transparent animationType="none" onRequestClose={closeSheet}>
-          <Animated.View style={[styles.backdrop, backdropStyle]} pointerEvents="box-none">
+          <Animated.View style={[styles.backdrop, backdropStyle, { pointerEvents: 'box-none' }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={closeSheet} />
           </Animated.View>
 
@@ -354,7 +354,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: 8,
+    paddingTop: 10,
+    paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
@@ -362,7 +363,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   toolbarCompact: {
-    paddingVertical: 6,
+    paddingTop: 8,
+    paddingBottom: 12,
     minHeight: 36,
   },
   sortRow: {
@@ -447,7 +449,7 @@ const styles = StyleSheet.create({
   // ── Backdrop ────────────────────────────────────────────────────────────────
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.32)',
+    backgroundColor: 'rgba(0,0,0,0.28)',
   },
 
   // ── Sheet ───────────────────────────────────────────────────────────────────
@@ -457,20 +459,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: Colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
     maxHeight: SHEET_H,
     ...Shadow.md,
     paddingBottom: 28,
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
+    width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: BorderRadius.full,
     backgroundColor: Colors.border,
-    marginTop: 10,
-    marginBottom: 4,
+    marginTop: 12,
+    marginBottom: 6,
   },
   sheetHeader: {
     flexDirection: 'row',

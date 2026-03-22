@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 
 interface Props {
   visible: boolean;
@@ -58,7 +58,7 @@ export default function AddGarmentModal({ visible, onClose, onPickSource }: Prop
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.40)',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -66,23 +66,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: 48,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
   },
   handle: {
-    width: 36,
+    width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: BorderRadius.full,
     backgroundColor: Colors.border,
     alignSelf: 'center',
     marginBottom: Spacing.lg,
   },
   title: {
     fontSize: FontSize.lg,
-    fontWeight: FontWeight.black,
+    fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     marginBottom: 4,
-    letterSpacing: 2,
+    letterSpacing: 1,
     textAlign: 'center',
   },
   subtitle: {
@@ -101,20 +101,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceLight,
     padding: Spacing.lg,
     gap: Spacing.sm,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   iconWrap: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     backgroundColor: Colors.background,
+    borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
+    shadowColor: '#B8A799',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   optionTitle: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.semibold,
     color: Colors.textPrimary,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   optionSub: {
     fontSize: FontSize.xs,

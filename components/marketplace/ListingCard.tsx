@@ -5,7 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { ListingItem, CATEGORIES, BADGE_COLORS, CONDITION_LABELS, formatPrice } from './constants';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -98,6 +98,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     marginBottom: 12,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
   },
   badge: {
     position: 'absolute',
@@ -105,17 +107,18 @@ const styles = StyleSheet.create({
     left: 0,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    borderBottomRightRadius: BorderRadius.md,
     backgroundColor: Colors.accent,
   },
-  badgeText: { fontSize: 10, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1.5 },
+  badgeText: { fontSize: 10, fontWeight: FontWeight.bold, color: '#FFF', letterSpacing: 0.5 },
   userBadge: {
     position: 'absolute',
     top: 10,
     right: 44,
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -125,14 +128,14 @@ const styles = StyleSheet.create({
     right: 8,
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: BorderRadius.full,
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#B8A799',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 2,
   },
   categoryIconWrap: {
@@ -142,15 +145,15 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   cardBody: { gap: 4 },
-  cardBrand: { fontSize: 11, fontWeight: FontWeight.black, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2 },
+  cardBrand: { fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.5 },
   cardTitle: { fontSize: FontSize.sm, fontWeight: FontWeight.regular, color: Colors.textPrimary, lineHeight: 20, marginBottom: 4 },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardPrice: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   cardOriginal: { fontSize: 11, color: Colors.textMuted, textDecorationLine: 'line-through', marginLeft: 6 },
-  sizeText: { fontSize: 11, fontWeight: FontWeight.regular, color: Colors.textSecondary, textTransform: 'uppercase' },
+  sizeText: { fontSize: 11, fontWeight: FontWeight.regular, color: Colors.textSecondary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  conditionDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accentWarm },
+  conditionDot: { width: 8, height: 8, borderRadius: BorderRadius.full, backgroundColor: Colors.textMuted },
   conditionDotNew: { backgroundColor: Colors.success },
-  metaText: { fontSize: 10, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: FontWeight.bold },
+  metaText: { fontSize: 10, color: Colors.textSecondary, letterSpacing: 0.3, fontWeight: FontWeight.medium },
   sellerText: { fontSize: 10, color: Colors.textMuted, flex: 1 },
 });

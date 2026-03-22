@@ -1,26 +1,48 @@
 /**
- * CapsuleScoreCard — Compact summary strip showing capsule cohesion score.
- * Keeps all data + actions but in a tight, scannable layout that doesn't
- * dominate the page — leaving room for the Smart Action carousel below.
+ * CapsuleScoreCard — Animated compact score card.
+ *
+ * Layout (single card, two rows):
+ *   Row 1: [Animated ring] [Animated breakdown bars] [CTA stack]
+ *   Row 2: meta strip — item count · grade label · tip (1 line)
+ *
+ * Animations:
+ *   • Card slides up + fades in on mount
+ *   • Score ring bounces in
+ *   • Each bar fills from 0 → value with staggered colour delay
+ *   • CTA buttons fade + slide up slightly after the bars
  */
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withSpring,
+  withSequence,
+  withDelay,
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import type { CapsuleScoreResponse } from '../../types';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const RING = 80;
+
+const BREAKDOWN_LABELS: Record<string, string> = {
+  versatility:       'Versatility',
+  colour_cohesion:   'Colour',
+  occasion_coverage: 'Occasions',
+  season_balance:    'Seasons',
+};
+
+const BAR_COLORS: Record<string, string> = {
+  versatility:       '#2D2D2D',  // Black
+  colour_cohesion:   '#8B7355',  // Warm espresso
+  occasion_coverage: '#A89E94',  // Soft taupe
+  season_balance:    '#C9B8A8',  // Warm cashmere
+};
 
 interface Props {
   data: CapsuleScoreResponse | null;
@@ -29,60 +51,113 @@ interface Props {
   onPressMissing: () => void;
 }
 
-const BREAKDOWN_LABELS: Record<string, string> = {
-  versatility:        'Versatility',
-  colour_cohesion:    'Colour',
-  occasion_coverage:  'Occasions',
-  season_balance:     'Seasons',
-};
+// ─── Animated bar fill ────────────────────────────────────────────────────────
+function AnimatedBar({ value, color, delay }: { value: number; color: string; delay: number }) {
+  const widthPct = useSharedValue(0);
 
-const RING = 64;
+  useEffect(() => {
+    widthPct.value = withDelay(
+      delay,
+      withTiming(value, { duration: 800, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [value]);
 
-function GradeRing({ score, grade }: { score: number; grade: string }) {
-  const gradeColor =
-    grade === 'S' || grade === 'A' ? Colors.success :
-    grade === 'B' ? '#FF8800' :
-    grade === 'C' ? Colors.accentWarm :
-    Colors.error;
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${widthPct.value}%` as any,
+    backgroundColor: color,
+  }));
 
   return (
-    <View style={styles.ringWrap}>
-      <View style={styles.ringTrack} />
-      <View style={styles.ringCenter}>
-        <Text style={[styles.scoreNum, { color: gradeColor }]}>{Math.round(score)}</Text>
-        <Text style={styles.scoreUnit}>/100</Text>
-      </View>
-      <View style={[styles.gradeBadge, { borderColor: gradeColor }]}>
-        <Text style={[styles.gradeText, { color: gradeColor }]}>{grade}</Text>
-      </View>
+    <View style={styles.barTrack}>
+      <Animated.View style={[styles.barFill, barStyle]} />
     </View>
   );
 }
 
+// ─── Grade ring with bounce ───────────────────────────────────────────────────
+function GradeRing({ score, grade }: { score: number; grade: string }) {
+  const ringScale   = useSharedValue(0.6);
+  const ringOpacity = useSharedValue(0);
+
+  // Quiet luxury tones — warm nudes and soft neutrals
+  const gradeColor =
+    grade === 'S' || grade === 'A' ? '#2D2D2D' :  // black for excellent
+    grade === 'B' ? '#6E6358' :                    // walnut for good
+    grade === 'C' ? '#A89E94' :                    // taupe for average
+    '#999999';                                     // grey for poor
+
+  useEffect(() => {
+    ringOpacity.value = withTiming(1, { duration: 400 });
+    ringScale.value   = withSequence(
+      withSpring(1.08, { damping: 10, stiffness: 200 }),
+      withSpring(1.0, { damping: 16, stiffness: 300 }),
+    );
+  }, [score]);
+
+  const ringAnim = useAnimatedStyle(() => ({
+    opacity:   ringOpacity.value,
+    transform: [{ scale: ringScale.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.ringWrap, ringAnim]}>
+      {/* Outer soft halo */}
+      <View style={[styles.ringTrack, { borderColor: gradeColor + '18' }]} />
+      {/* Inner accent arc */}
+      <View style={[styles.ringInner, { borderColor: gradeColor + '40' }]} />
+      <View style={styles.ringCenter}>
+        <Text style={[styles.scoreNum, { color: gradeColor }]}>{Math.round(score)}</Text>
+        <Text style={[styles.scoreUnit, { color: gradeColor + 'AA' }]}>/100</Text>
+      </View>
+      <View style={[styles.gradeBadge, { backgroundColor: gradeColor }]}>
+        <Text style={styles.gradeText}>{grade}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Main card ────────────────────────────────────────────────────────────────
 export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPressMissing }: Props) {
-  const cardOpacity = useSharedValue(0);
-  const cardScale   = useSharedValue(0.98);
+  const cardOpacity    = useSharedValue(0);
+  const cardTranslateY = useSharedValue(14);
+  const ctaOpacity     = useSharedValue(0);
+  const ctaTranslateY  = useSharedValue(10);
 
   useEffect(() => {
     if (!loading && data) {
-      cardOpacity.value = withTiming(1, { duration: 350 });
-      cardScale.value   = withSpring(1, { damping: 14 });
+      const easing = Easing.out(Easing.cubic);
+      cardOpacity.value    = withTiming(1, { duration: 380, easing });
+      cardTranslateY.value = withSpring(0, { damping: 18, stiffness: 200 });
+      ctaOpacity.value     = withDelay(320, withTiming(1, { duration: 320, easing }));
+      ctaTranslateY.value  = withDelay(320, withSpring(0, { damping: 16, stiffness: 240 }));
     }
   }, [loading, data]);
 
-  const animatedCard = useAnimatedStyle(() => ({
+  const cardAnim = useAnimatedStyle(() => ({
     opacity:   cardOpacity.value,
-    transform: [{ scale: cardScale.value }],
+    transform: [{ translateY: cardTranslateY.value }],
   }));
 
+  const ctaAnim = useAnimatedStyle(() => ({
+    opacity:   ctaOpacity.value,
+    transform: [{ translateY: ctaTranslateY.value }],
+  }));
+
+  // ── Skeleton ──
   if (loading) {
     return (
-      <View style={[styles.card, styles.skeleton]}>
-        <View style={styles.skeletonRing} />
-        <View style={styles.skeletonLines}>
-          <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, { width: '55%' }]} />
-          <View style={[styles.skeletonLine, { width: '75%' }]} />
+      <View style={styles.cardWrap}>
+        <View style={[styles.card, styles.skeleton]}>
+          <View style={styles.skeletonRing} />
+          <View style={styles.skeletonLines}>
+            {[1, 0.65, 0.85, 0.72].map((w, i) => (
+              <View key={i} style={[styles.skeletonLine, { width: `${w * 100}%` as any }]} />
+            ))}
+          </View>
+          <View style={styles.skeletonCta}>
+            <View style={[styles.skeletonLine, { width: 72, height: 30, borderRadius: BorderRadius.md }]} />
+            <View style={[styles.skeletonLine, { width: 72, height: 30, borderRadius: BorderRadius.md }]} />
+          </View>
         </View>
       </View>
     );
@@ -93,48 +168,58 @@ export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPr
   const breakdown = Object.entries(data.breakdown) as [string, number][];
 
   return (
-    <Animated.View style={animatedCard}>
+    <Animated.View style={[styles.cardWrap, cardAnim]}>
       <View style={styles.card}>
 
-        {/* ── Top row: ring · breakdown bars · CTA buttons ── */}
+        {/* ── Row 1: ring · bars · CTAs ── */}
         <View style={styles.topRow}>
 
-          {/* Score ring */}
+          {/* Bouncing grade ring */}
           <GradeRing score={data.score} grade={data.grade} />
 
-          {/* Breakdown bars — compact, 2-column feel */}
+          {/* Staggered animated bars */}
           <View style={styles.breakdownCol}>
-            {breakdown.map(([key, val]) => (
+            {breakdown.map(([key, val], i) => (
               <View key={key} style={styles.barRow}>
                 <Text style={styles.barLabel}>{BREAKDOWN_LABELS[key] || key}</Text>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, { width: `${val}%` as any }]} />
-                </View>
+                <AnimatedBar
+                  value={val}
+                  color={BAR_COLORS[key] || Colors.accent}
+                  delay={160 + i * 90}
+                />
                 <Text style={styles.barVal}>{Math.round(val)}</Text>
               </View>
             ))}
           </View>
 
-          {/* CTA buttons — vertical stack on the right */}
-          <View style={styles.ctaStack}>
-            <TouchableOpacity style={styles.ctaPrimary} onPress={onPressMissing} activeOpacity={0.8}
-              accessibilityLabel="See missing pieces">
-              <Ionicons name="add-circle-outline" size={13} color="#FFF" />
-              <Text style={styles.ctaPrimaryLabel}>Missing{'\n'}Pieces</Text>
+          {/* CTA buttons — slide up after bars */}
+          <Animated.View style={[styles.ctaStack, ctaAnim]}>
+            <TouchableOpacity
+              style={styles.ctaPrimary}
+              onPress={onPressMissing}
+              activeOpacity={0.8}
+              accessibilityLabel="See missing pieces"
+            >
+              <Ionicons name="sparkles-outline" size={14} color="#FFF" />
+              <Text style={styles.ctaPrimaryLabel}>{'Missing\nPieces'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.ctaSecondary} onPress={onPressEvolution} activeOpacity={0.8}
-              accessibilityLabel="View my capsule journey">
-              <Ionicons name="analytics-outline" size={13} color={Colors.textPrimary} />
-              <Text style={styles.ctaSecondaryLabel}>My{'\n'}Journey</Text>
+            <TouchableOpacity
+              style={styles.ctaSecondary}
+              onPress={onPressEvolution}
+              activeOpacity={0.8}
+              accessibilityLabel="View my capsule journey"
+            >
+              <Ionicons name="trending-up-outline" size={14} color={Colors.textPrimary} />
+              <Text style={styles.ctaSecondaryLabel}>{'My\nJourney'}</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
 
-        {/* ── Meta row: item count · grade label · tip (1 line) ── */}
+        {/* ── Row 2: meta strip ── */}
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>
-            {data.total_items} items · {data.grade_label}
-          </Text>
+          <Text style={styles.metaCount}>{data.total_items} items</Text>
+          <View style={styles.metaDot} />
+          <Text style={styles.metaGrade}>{data.grade_label}</Text>
           {data.tip ? (
             <>
               <View style={styles.metaDot} />
@@ -149,133 +234,232 @@ export default function CapsuleScoreCard({ data, loading, onPressEvolution, onPr
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // ── Card shell ───────────────────────────────────────────────────────
-  card: {
+  // ── Wrapper + card ───────────────────────────────────────────────────
+  cardWrap: {
     marginHorizontal: Spacing.lg,
-    marginBottom:     Spacing.sm,
-    backgroundColor:  Colors.surface,
-    borderWidth:      1,
-    borderColor:      Colors.border,
-    borderRadius:     BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical:   Spacing.sm + 2,
+    marginTop:        Spacing.md,
+    marginBottom:     Spacing.lg,
+  },
+  card: {
+    backgroundColor:   Colors.surface,
+    borderWidth:       1,
+    borderColor:       Colors.border,
+    borderRadius:      BorderRadius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop:        Spacing.lg + 2,
+    paddingBottom:     Spacing.md,
     ...Shadow.md,
   },
-  skeleton:     { minHeight: 80, flexDirection: 'row', gap: Spacing.md },
-  skeletonRing: { width: RING, height: RING, borderRadius: RING / 2, backgroundColor: Colors.border },
-  skeletonLines:{ flex: 1, gap: Spacing.sm, justifyContent: 'center' },
-  skeletonLine: { height: 8, backgroundColor: Colors.border, borderRadius: 4, width: '90%' },
 
-  // ── Top row: ring | bars | cta stack ────────────────────────────────
+  // ── Skeleton ─────────────────────────────────────────────────────────
+  skeleton: {
+    flexDirection: 'row',
+    gap:           Spacing.md,
+    minHeight:     100,
+    alignItems:    'center',
+  },
+  skeletonRing:  { width: RING, height: RING, borderRadius: RING / 2, backgroundColor: Colors.border },
+  skeletonLines: { flex: 1, gap: 10 },
+  skeletonLine:  { height: 8, backgroundColor: Colors.border, borderRadius: BorderRadius.full },
+  skeletonCta:   { gap: Spacing.sm },
+
+  // ── Top row ───────────────────────────────────────────────────────────
   topRow: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           Spacing.md,
+    alignItems:    'flex-start',
+    gap:           Spacing.lg,
   },
 
-  // ── Score ring ───────────────────────────────────────────────────────
-  ringWrap:   { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
-  ringTrack:  { width: RING, height: RING, borderRadius: RING / 2, borderWidth: 4, borderColor: Colors.border, position: 'absolute' },
-  ringCenter: { alignItems: 'center' },
-  scoreNum:   { fontSize: FontSize.xl, fontWeight: FontWeight.black, lineHeight: 24 },
-  scoreUnit:  { fontSize: 9, color: Colors.textMuted, fontWeight: FontWeight.medium },
+  // ── Score ring ────────────────────────────────────────────────────────
+  ringWrap: {
+    width:          RING,
+    height:         RING,
+    alignItems:     'center',
+    justifyContent: 'center',
+    position:       'relative',
+  },
+  ringTrack: {
+    position:     'absolute',
+    width:        RING,
+    height:       RING,
+    borderRadius: RING / 2,
+    borderWidth:  6,
+    shadowColor:  '#B8A799',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  ringInner: {
+    position:     'absolute',
+    width:        RING - 14,
+    height:       RING - 14,
+    borderRadius: (RING - 14) / 2,
+    borderWidth:  1.5,
+    opacity:      0.35,
+  },
+  ringCenter: { alignItems: 'center', gap: 1 },
+  scoreNum: {
+    fontSize:      FontSize.xxl,
+    fontWeight:    FontWeight.black,
+    lineHeight:    34,
+    letterSpacing: -0.8,
+    color:         Colors.textPrimary,
+  },
+  scoreUnit: {
+    fontSize:   FontSize.xs,
+    fontWeight: FontWeight.semibold,
+    lineHeight: 15,
+    color:      Colors.textMuted,
+    letterSpacing: 0.5,
+  },
   gradeBadge: {
-    position:        'absolute',
-    bottom:          -2,
-    right:           -2,
-    width:           20,
-    height:          20,
-    borderRadius:    10,
-    borderWidth:     2,
-    backgroundColor: Colors.surface,
-    alignItems:      'center',
-    justifyContent:  'center',
+    position:       'absolute',
+    bottom:         -3,
+    right:          -3,
+    width:          26,
+    height:         26,
+    borderRadius:   BorderRadius.full,
+    alignItems:     'center',
+    justifyContent: 'center',
+    borderWidth:    2,
+    borderColor:    Colors.surface,
+    shadowColor:    '#000',
+    shadowOffset:   { width: 0, height: 2 },
+    shadowOpacity:  0.10,
+    shadowRadius:   4,
+    elevation:      3,
   },
-  gradeText: { fontSize: 9, fontWeight: FontWeight.black },
+  gradeText: {
+    fontSize:   11,
+    fontWeight: FontWeight.black,
+    color:      '#FFFFFF',
+    letterSpacing: 0.3,
+  },
 
-  // ── Breakdown bars ───────────────────────────────────────────────────
-  breakdownCol: { flex: 1, gap: 6 },
-  barRow:       { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  barLabel:     { width: 66, fontSize: 10, color: Colors.textMuted, fontWeight: FontWeight.medium },
-  barTrack:     { flex: 1, height: 3, backgroundColor: Colors.border, overflow: 'hidden', borderRadius: 2 },
-  barFill:      { height: '100%', backgroundColor: Colors.accent, borderRadius: 2 },
-  barVal:       { width: 22, fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.bold, textAlign: 'right' },
+  // ── Breakdown bars ────────────────────────────────────────────────────
+  breakdownCol: { flex: 1, gap: 14 },
+  barRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           8,
+  },
+  barLabel: {
+    width:         70,
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.medium,
+    color:         Colors.textSecondary,
+    letterSpacing: 0.2,
+  },
+  barTrack: {
+    flex:            1,
+    height:          5,
+    backgroundColor: Colors.surfaceLight,
+    borderRadius:    BorderRadius.full,
+    overflow:        'hidden',
+  },
+  barFill: {
+    height:       '100%',
+    borderRadius: BorderRadius.full,
+  },
+  barVal: {
+    width:      28,
+    fontSize:   FontSize.xs,
+    fontWeight: FontWeight.bold,
+    color:      Colors.textPrimary,
+    textAlign:  'right',
+    letterSpacing: 0.1,
+  },
 
-  // ── CTA vertical stack ───────────────────────────────────────────────
-  ctaStack: { gap: Spacing.xs },
+  ctaStack: { gap: Spacing.sm, paddingLeft: Spacing.xs },
   ctaPrimary: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    justifyContent:  'center',
-    gap:             4,
-    backgroundColor: Colors.accent,
-    paddingVertical:   7,
-    paddingHorizontal: 8,
-    borderRadius:    BorderRadius.sm,
-    minWidth:        72,
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'center',
+    gap:               5,
+    backgroundColor:   Colors.accent,
+    paddingVertical:   10,
+    paddingHorizontal: Spacing.md,
+    borderRadius:      BorderRadius.full,
+    minWidth:          78,
+    shadowColor:       '#000',
+    shadowOffset:      { width: 0, height: 2 },
+    shadowOpacity:     0.08,
+    shadowRadius:      6,
+    elevation:         2,
   },
   ctaPrimaryLabel: {
-    color:      '#FFF',
-    fontSize:   9,
-    fontWeight: FontWeight.black,
-    letterSpacing: 0.4,
+    color:         '#FFF',
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.bold,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
-    textAlign:  'center',
-    lineHeight: 12,
+    textAlign:     'center',
+    lineHeight:    14,
   },
   ctaSecondary: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    justifyContent:  'center',
-    gap:             4,
-    borderWidth:     1,
-    borderColor:     Colors.accent,
-    paddingVertical:   7,
-    paddingHorizontal: 8,
-    borderRadius:    BorderRadius.sm,
-    backgroundColor: Colors.surface,
-    minWidth:        72,
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'center',
+    gap:               4,
+    borderWidth:       1.5,
+    borderColor:       Colors.border,
+    paddingVertical:   9,
+    paddingHorizontal: Spacing.sm,
+    borderRadius:      BorderRadius.full,
+    backgroundColor:   Colors.surface,
+    minWidth:          74,
   },
   ctaSecondaryLabel: {
-    color:      Colors.textPrimary,
-    fontSize:   9,
-    fontWeight: FontWeight.bold,
-    letterSpacing: 0.4,
+    color:         Colors.textPrimary,
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.bold,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
-    textAlign:  'center',
-    lineHeight: 12,
+    textAlign:     'center',
+    lineHeight:    13,
   },
 
-  // ── Meta / tip row ───────────────────────────────────────────────────
+  // ── Meta strip ────────────────────────────────────────────────────────
   metaRow: {
     flexDirection:  'row',
     alignItems:     'center',
-    marginTop:      Spacing.sm,
-    gap:            5,
+    marginTop:      Spacing.md + 2,
+    paddingTop:     Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    paddingTop:     Spacing.xs + 2,
+    gap:            8,
   },
-  metaText: {
-    fontSize:   10,
-    color:      Colors.textMuted,
+  metaCount: {
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.bold,
+    color:         Colors.textPrimary,
+    letterSpacing: 0.3,
+  },
+  metaGrade: {
+    fontSize:   FontSize.xs,
     fontWeight: FontWeight.medium,
+    color:      Colors.textMuted,
+    letterSpacing: 0.1,
   },
   metaDot: {
-    width: 3, height: 3, borderRadius: 2,
-    backgroundColor: Colors.border,
-    marginHorizontal: 2,
+    width:           3,
+    height:          3,
+    borderRadius:    BorderRadius.full,
+    backgroundColor: Colors.textMuted,
+    opacity:         0.5,
   },
   metaTip: {
     flex:       1,
-    fontSize:   10,
+    fontSize:   FontSize.xs,
     color:      Colors.textSecondary,
     fontWeight: FontWeight.medium,
-    lineHeight: 14,
+    lineHeight: 15,
   },
 
-  // ── Legacy style names kept so nothing outside breaks ────────────────
+  // ── Legacy stubs ──────────────────────────────────────────────────────
   header:              {},
   title:               {},
   subtitle:            {},
@@ -295,4 +479,5 @@ const styles = StyleSheet.create({
   ctaBtnSecondary:     {},
   ctaBtnTextSecondary: {},
   ctaBtnSecondaryText: {},
+  metaText:            {},
 });

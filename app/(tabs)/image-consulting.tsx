@@ -1,6 +1,6 @@
 /**
- * Style DNA Tab
- * Quiet luxury — nude palette, black text, animated section cards
+ * Style DNA Tab — Quiet luxury redesign
+ * Black, white, nude palette with enhanced visuals and animations
  */
 import React from 'react';
 import {
@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
 
-import { Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import { TopBar } from '../../components/ui';
 import {
   EmptyState,
@@ -25,11 +25,7 @@ import {
   SkinContrastCard,
   SizingCard,
 } from '../../components/imageConsulting';
-import { SECTION_COLORS } from '../../components/imageConsulting/SharedAtoms';
 import { useImageConsulting } from '../../hooks/useImageConsulting';
-
-const BLACK    = '#1A1A1A';
-const ESPRESSO = '#3B2A1A';
 
 // Animated loading dots
 function LoadingDots() {
@@ -46,19 +42,19 @@ function LoadingDots() {
       );
     });
   }, []);
-  const COLORS = [SECTION_COLORS.palette, SECTION_COLORS.body, SECTION_COLORS.face];
+  const DOT_COLORS = ['#D4C4B0', '#C4B5A4', '#B4A594']; // Warm nude gradient
   return (
     <View style={loader.row}>
       {dots.map((dot, i) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const style = useAnimatedStyle(() => ({
-          opacity: dot.value,
-          transform: [{ scale: 0.8 + dot.value * 0.4 }],
+          opacity: 0.3 + dot.value * 0.7,
+          transform: [{ scale: 0.75 + dot.value * 0.35 }],
         }));
         return (
           <Animated.View
             key={i}
-            style={[loader.dot, { backgroundColor: COLORS[i] }, style]}
+            style={[loader.dot, { backgroundColor: DOT_COLORS[i] }, style]}
           />
         );
       })}
@@ -67,8 +63,8 @@ function LoadingDots() {
 }
 
 const loader = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  dot: { width: 14, height: 14, borderRadius: 7 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  dot: { width: 12, height: 12, borderRadius: BorderRadius.full },
 });
 
 export default function ImageConsultingScreen() {
@@ -76,7 +72,7 @@ export default function ImageConsultingScreen() {
 
   return (
     <View style={styles.container}>
-      <TopBar title="Style DNA" />
+      <TopBar title="Style DNA" subtitle={ic.consultingResult ? 'Your personalised analysis' : 'Discover your style profile'} />
 
       {/* ── Loading overlay ── */}
       {ic.isLoadingConsulting && (
@@ -88,7 +84,8 @@ export default function ImageConsultingScreen() {
             ✨
           </Animated.Text>
           <LoadingDots />
-          <Text style={styles.loadingText}>Analysing your style profile…</Text>
+          <Text style={styles.loadingText}>Analysing your style profile</Text>
+          <Text style={styles.loadingSubtext}>This takes about 30 seconds…</Text>
         </View>
       )}
 
@@ -155,9 +152,9 @@ export default function ImageConsultingScreen() {
           <TouchableOpacity
             style={styles.retakeBtn}
             onPress={() => ic.setShowModal(true)}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Text style={styles.retakeBtnText}>✦ RETAKE ANALYSIS</Text>
+            <Text style={styles.retakeBtnText}>✦  Retake Analysis</Text>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -175,49 +172,56 @@ export default function ImageConsultingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF7F4' },
+  container: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24, paddingTop: Spacing.sm },
 
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FAF7F4',
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20,
+    gap: Spacing.md,
     zIndex: 10,
   },
   loadingEmoji: {
-    fontSize: 48,
+    fontSize: 52,
+    marginBottom: Spacing.sm,
   },
   loadingText: {
-    fontSize: FontSize.md,
-    color: ESPRESSO,
-    fontWeight: FontWeight.medium,
-    letterSpacing: 0.2,
+    fontSize: FontSize.lg,
+    color: Colors.textPrimary,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: -0.2,
+  },
+  loadingSubtext: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontWeight: FontWeight.regular,
+    letterSpacing: 0.1,
   },
 
   stickyBar: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    backgroundColor: '#FAF7F4',
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#E8DDD5',
+    borderTopColor: Colors.border,
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Platform.OS === 'ios' ? 32 : Spacing.lg,
-    ...Shadow.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Platform.OS === 'ios' ? 34 : Spacing.lg,
+    ...Shadow.soft,
   },
   retakeBtn: {
     borderRadius: BorderRadius.full,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: BLACK,
+    backgroundColor: Colors.accent,
   },
   retakeBtnText: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.black,
-    color: '#FFFFFF',
-    letterSpacing: 3,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textOnAccent,
+    letterSpacing: 0.5,
   },
 });

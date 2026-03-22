@@ -66,6 +66,13 @@ export type {
   CapsuleSeason,
   CapsuleGenerateRequest,
   CapsuleGenerateResponse,
+  // Wardrobe Insights (5 AI features)
+  GapItem,
+  CostPerWearItem,
+  DuplicateGroup,
+  OccasionCoverageItem,
+  VersatilityItem,
+  WardrobeInsightsResponse,
 } from './schemas/wardrobe';
 
 // Recommendation types

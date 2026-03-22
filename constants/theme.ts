@@ -1,5 +1,19 @@
 /**
- * AlgoStyle — Design Tokens & Theme
+ * AlgoStyle —  // ─── Accent Col  // ─── S  // ─── Category Colors ──────────────────────
+  categoryTop: '#2D2D2D',
+  categoryBottom: '#525252',
+  categoryDress: '#2D2D2D',      // Black (neutral)
+  categoryOuterwear: '#525252',
+  categoryShoes: '#2D2D2D',
+  categoryAccessory: '#666666',  // Dark grey (neutral)───────────────────────────────
+  success: '#2D2D2D',            // Black (neutral)
+  error: '#2D2D2D',              // Black (neutral)
+  warning: '#666666',            // Dark grey (neutral)
+  info: '#999999',               // Medium grey (neutral)────────────────────────
+  accent: '#2D2D2D',             // Black — primary CTA
+  accentSecondary: '#2D2D2D',    // Same black
+  accentTertiary: '#2D2D2D',     // Black — for success states
+  accentWarm: '#666666',         // Dark grey — sale / promo (neutral)gn Tokens & Theme
  * ASOS-inspired: bold black & white, editorial fashion, clean typography
  */
 
@@ -57,10 +71,11 @@ export const Spacing = {
 };
 
 export const BorderRadius = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 20,
+  sm: 8,
+  md: 14,
+  lg: 20,
+  xl: 28,
+  xxl: 36,
   full: 9999,
 };
 
@@ -87,29 +102,36 @@ export const Shadow = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
     elevation: 1,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
     elevation: 3,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.07,
+    shadowRadius: 20,
     elevation: 6,
+  },
+  soft: {
+    shadowColor: '#B8A799',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   glow: (color: string) => ({
     shadowColor: color,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
     elevation: 4,
   }),
 };

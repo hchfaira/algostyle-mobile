@@ -17,25 +17,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Dimensions,
   ScrollView,
-  FlatList,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   RefreshControl,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
-  type SharedValue,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  withDelay,
+  FadeInDown,
+  Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import { TopBar } from '../../components/ui';
-import ActionCard, { CARD_WIDTH } from '../../components/wardrobe/ActionCard';
 import AddGarmentModal from '../../components/wardrobe/AddGarmentModal';
 import GarmentUploadFlow from '../../components/wardrobe/GarmentUploadFlow';
 import SmartAddSheet from '../../components/wardrobe/SmartAddSheet';
@@ -53,39 +50,195 @@ import { BROWSABLE_CATEGORIES } from '../../components/wardrobe/constants';
 import { CapsuleWardrobeModal } from '../../components/CapsuleWardrobeModal';
 import { useWardrobe } from '../../hooks/useWardrobe';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 
-// ── Smart action cards ───────────────────────────────────────────────────
+// ── Smart action cards ────────────────────────────────────────────────────
+// Refined quiet luxury — soft tones, understated elegance
 const SMART_CARDS = [
-  { key: 'smart-add', icon: 'sparkles-outline',  title: 'Smart Add',     subtitle: 'AI spots missing pieces that unlock the most outfit combos.',  buttonLabel: 'See suggestions', accentColor: Colors.accent,    variant: 'primary'   as const },
-  { key: 'audit',     icon: 'refresh-outline',    title: 'Closet Audit',  subtitle: 'Surface underused pieces and tidy your wardrobe rhythm.',       buttonLabel: 'Review now',      accentColor: Colors.accentWarm, variant: 'secondary' as const },
-  { key: 'removal',   icon: 'trash-outline',      title: 'Smart Removal', subtitle: 'Find low-impact pieces to declutter your capsule.',             buttonLabel: 'Declutter',       accentColor: Colors.error,     variant: 'secondary' as const },
-  { key: 'capsule',   icon: 'layers-outline',     title: 'Capsule',       subtitle: 'Build a tight capsule that maximises outfit combinations.',      buttonLabel: 'Build capsule',   accentColor: Colors.accent,    variant: 'primary'   as const },
+  {
+    key:       'smart-add',
+    icon:      '🛍️',
+    title:     'Smart Add',
+    subtitle:  'Find missing pieces',
+    accent:    '#C9B8A8',   // warm cashmere
+    accentBg:  '#FAF8F5',
+    iconColor: '#8B7355',   // warm espresso
+  },
+  {
+    key:       'audit',
+    icon:      '📋',
+    title:     'Audit',
+    subtitle:  'Review your closet',
+    accent:    '#B8ADA3',   // cool stone
+    accentBg:  '#F9F7F5',
+    iconColor: '#6E6358',   // cool walnut
+  },
+  {
+    key:       'removal',
+    icon:      '✨',
+    title:     'Simplify',
+    subtitle:  'Streamline your wardrobe',
+    accent:    '#A89E94',   // soft taupe
+    accentBg:  '#F8F6F3',
+    iconColor: '#8A7E72',   // warm taupe
+  },
+  {
+    key:       'capsule',
+    icon:      '📦',
+    title:     'Capsule',
+    subtitle:  'Build the perfect set',
+    accent:    '#9B9189',   // greige
+    accentBg:  '#F7F5F2',
+    iconColor: '#7A706A',   // warm greige
+  },
 ] as const;
 
-// ── Animated dot indicator ────────────────────────────────────────────────
-interface DotProps { index: number; activeIndex: number; scrollX: SharedValue<number>; cardWidth: number; }
-
-function DotIndicator({ index, scrollX, cardWidth }: DotProps) {
-  const step = cardWidth + Spacing.sm;
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * step, index * step, (index + 1) * step];
-    return {
-      width:   interpolate(scrollX.value, inputRange, [5, 18, 5],      Extrapolation.CLAMP),
-      opacity: interpolate(scrollX.value, inputRange, [0.30, 1, 0.30], Extrapolation.CLAMP),
-    };
-  });
-  return <Animated.View style={[styles.dot, animStyle]} />;
+// ─────────────────────────────────────────────────────────────────────────
+// SmartTile — premium card with large colored icon, entrance + press animations
+// ─────────────────────────────────────────────────────────────────────────
+interface SmartTileProps {
+  icon:       typeof SMART_CARDS[number]['icon'];
+  title:      string;
+  subtitle:   string;
+  accent:     string;
+  accentBg:   string;
+  iconColor:  string;
+  onPress:    () => void;
+  delay:      number;
+  isEmoji?:   boolean;
 }
+
+function SmartTile({ icon, title, subtitle, accent, accentBg, iconColor, onPress, delay, isEmoji = true }: SmartTileProps) {
+  const scale    = useSharedValue(1);
+  const iconRotY = useSharedValue(0);
+
+  // entrance: scale up from 0.88
+  const entranceScale = useSharedValue(0.88);
+  const entranceAnim  = useAnimatedStyle(() => ({
+    opacity:   entranceScale.value === 1 ? 1 : entranceScale.value / 0.88 * 0.3 + 0.7,
+    transform: [{ scale: entranceScale.value }],
+  }));
+
+  React.useEffect(() => {
+    entranceScale.value = withDelay(
+      delay,
+      withSpring(1, { damping: 16, stiffness: 260 }),
+    );
+  }, []);
+
+  // press animation
+  const pressAnim = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  // icon spin on press
+  const iconAnim = useAnimatedStyle(() => ({
+    transform: [{ rotateY: `${iconRotY.value}deg` }],
+  }));
+
+  const onPressIn = () => {
+    scale.value    = withSpring(0.95, { damping: 18, stiffness: 400 });
+    iconRotY.value = withTiming(180, { duration: 280, easing: Easing.out(Easing.cubic) });
+  };
+  const onPressOut = () => {
+    scale.value    = withSpring(1, { damping: 14, stiffness: 320 });
+    iconRotY.value = withTiming(0, { duration: 220, easing: Easing.out(Easing.cubic) });
+  };
+
+  return (
+    <Animated.View style={[gridStyles.tileWrapper, entranceAnim, pressAnim]}>
+      <TouchableOpacity
+        style={gridStyles.tile}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        activeOpacity={1}
+      >
+        {/* Large colored icon pill — fully rounded */}
+        <Animated.View style={[gridStyles.iconPill, { backgroundColor: accentBg }, iconAnim]}>
+          {isEmoji ? (
+            <Text style={[gridStyles.emojiIcon, { color: iconColor }]}>{icon}</Text>
+          ) : (
+            <Ionicons name={icon as any} size={40} color={iconColor} />
+          )}
+        </Animated.View>
+
+        <Text style={gridStyles.tileTitle}>{title}</Text>
+        <Text style={gridStyles.tileSub} numberOfLines={1}>{subtitle}</Text>
+
+        {/* Bottom accent pill — rounded, centered */}
+        <View style={[gridStyles.accentPill, { backgroundColor: accent }]} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+const gridStyles = StyleSheet.create({
+  grid: {
+    flexDirection:     'row',
+    flexWrap:          'wrap',
+    paddingHorizontal: Spacing.lg,
+    gap:               Spacing.md,
+    marginTop:         Spacing.lg,
+    marginBottom:      Spacing.md,
+  },
+  tileWrapper: {
+    width: '47.5%',
+  },
+  tile: {
+    backgroundColor:   Colors.surface,
+    paddingVertical:   22,
+    paddingHorizontal: 16,
+    borderRadius:      BorderRadius.xl,
+    borderWidth:       1,
+    borderColor:       Colors.border,
+    gap:               10,
+    overflow:          'hidden',
+    ...Shadow.md,
+    alignItems:        'center',
+  },
+  iconPill: {
+    width:          72,
+    height:         72,
+    borderRadius:   BorderRadius.full,
+    alignItems:     'center',
+    justifyContent: 'center',
+    marginBottom:   4,
+    shadowColor:    '#B8A799',
+    shadowOffset:   { width: 0, height: 3 },
+    shadowOpacity:  0.10,
+    shadowRadius:   10,
+    elevation:      3,
+  },
+  emojiIcon: {
+    fontSize:   40,
+    lineHeight: 44,
+  },
+  tileTitle: {
+    fontSize:      FontSize.sm,
+    fontWeight:    FontWeight.bold,
+    color:         Colors.textPrimary,
+    letterSpacing: 0.3,
+    textAlign:     'center',
+  },
+  tileSub: {
+    fontSize:   FontSize.xs,
+    color:      Colors.textMuted,
+    fontWeight: FontWeight.medium,
+    lineHeight: 16,
+    textAlign:  'center',
+  },
+  accentPill: {
+    width:        32,
+    height:       3,
+    borderRadius: BorderRadius.full,
+    alignSelf:    'center',
+    marginTop:    2,
+  },
+});
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function WardrobeScreen() {
   const w = useWardrobe();
-
-  // Carousel
-  const carouselRef = useRef<FlatList>(null);
-  const [activeCard, setActiveCard] = useState(0);
-  const scrollX = useSharedValue(0);
 
   // Filter sheet — opened via filter icon button; GarmentFilterBar registers its open fn here
   const openFilterSheet = useRef<(() => void) | null>(null);
@@ -93,16 +246,6 @@ export default function WardrobeScreen() {
   // Category filter sheet (category visibility) — kept for the CategoryFilterSheet modal
   const [showCategoryFilter, setShowCategoryFilter] = useState(false);
   const hiddenCount = BROWSABLE_CATEGORIES.length - w.visibleCategories.length;
-
-  const onCarouselScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const x = e.nativeEvent.contentOffset.x;
-      scrollX.value = x;
-      const idx = Math.round(x / (CARD_WIDTH + Spacing.sm));
-      if (idx !== activeCard) setActiveCard(idx);
-    },
-    [activeCard, scrollX],
-  );
 
   const handleCardPress = useCallback(
     (key: string) => {
@@ -223,40 +366,22 @@ export default function WardrobeScreen() {
           onPressMissing={w.handleOpenMissingPieces}
         />
 
-        {/* ── Smart Action Carousel ── */}
-        <View style={styles.carouselWrap}>
-          <FlatList
-            ref={carouselRef}
-            data={SMART_CARDS}
-            keyExtractor={(item) => item.key}
-            horizontal
-            pagingEnabled={false}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            snapToInterval={CARD_WIDTH + Spacing.sm}
-            snapToAlignment="start"
-            onScroll={onCarouselScroll}
-            scrollEventThrottle={16}
-            contentContainerStyle={styles.carouselContent}
-            renderItem={({ item, index }) => (
-              <ActionCard
-                icon={item.icon}
-                title={item.title}
-                subtitle={item.subtitle}
-                buttonLabel={item.buttonLabel}
-                accentColor={item.accentColor}
-                variant={item.variant}
-                index={index}
-                isActive={index === activeCard}
-                onPress={() => handleCardPress(item.key)}
-              />
-            )}
-          />
-          <View style={styles.dotsRow}>
-            {SMART_CARDS.map((_, i) => (
-              <DotIndicator key={i} index={i} activeIndex={activeCard} scrollX={scrollX} cardWidth={CARD_WIDTH} />
-            ))}
-          </View>
+        {/* ── Smart Action Grid — 2×2, no scrolling ── */}
+        <View style={gridStyles.grid}>
+          {SMART_CARDS.map((card, i) => (
+            <SmartTile
+              key={card.key}
+              icon={card.icon}
+              title={card.title}
+              subtitle={card.subtitle}
+              accent={card.accent}
+              accentBg={card.accentBg}
+              iconColor={card.iconColor}
+              delay={i * 70}
+              onPress={() => handleCardPress(card.key)}
+              isEmoji={true}
+            />
+          ))}
         </View>
 
         {/* ── Category sections ── */}
@@ -313,8 +438,8 @@ const styles = StyleSheet.create({
     alignItems:       'center',
     gap:              Spacing.sm,
     marginHorizontal: Spacing.lg,
-    marginTop:        Spacing.sm,
-    marginBottom:     Spacing.xs,
+    marginTop:        Spacing.md,
+    marginBottom:     Spacing.sm,
   },
   searchBar: {
     flex:              1,
@@ -324,7 +449,8 @@ const styles = StyleSheet.create({
     backgroundColor:   Colors.surfaceLight,
     borderWidth:       1,
     borderColor:       Colors.border,
-    paddingHorizontal: Spacing.md,
+    borderRadius:      BorderRadius.full,
+    paddingHorizontal: Spacing.md + 2,
     height:            46,
   },
   searchInput: {
@@ -338,6 +464,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     width:           46,
     height:          46,
+    borderRadius:    BorderRadius.full,
     alignItems:      'center',
     justifyContent:  'center',
     borderWidth:     1,
@@ -350,11 +477,11 @@ const styles = StyleSheet.create({
   },
   iconBtnBadge: {
     position:         'absolute',
-    top:              6,
-    right:            6,
-    minWidth:         14,
-    height:           14,
-    borderRadius:     7,
+    top:              4,
+    right:            4,
+    minWidth:         16,
+    height:           16,
+    borderRadius:     BorderRadius.full,
     backgroundColor:  '#FFFFFF',
     alignItems:       'center',
     justifyContent:   'center',
@@ -369,12 +496,13 @@ const styles = StyleSheet.create({
 
   // ── Add Clothing button ───────────────────────────────────────────────
   addBtn: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    gap:             6,
-    height:          46,
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               6,
+    height:            46,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.accent,
+    backgroundColor:   Colors.accent,
+    borderRadius:      BorderRadius.full,
   },
   addBtnLabel: {
     fontSize:      FontSize.xs,
@@ -383,18 +511,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-
-  // ── Action carousel ───────────────────────────────────────────────────
-  carouselWrap:    { marginTop: Spacing.md, marginBottom: Spacing.sm },
-  carouselContent: { paddingHorizontal: Spacing.lg },
-  dotsRow: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            5,
-    marginTop:      Spacing.sm,
-  },
-  dot: { height: 2, borderRadius: 1, backgroundColor: Colors.accent },
 
   // ── Empty state ───────────────────────────────────────────────────────
   emptyAll: {

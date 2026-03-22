@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 
 interface DnaPillProps {
   label: string;
@@ -23,13 +23,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
   },
   dnaPillLabel: {
     fontSize: 10,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.medium,
     color: Colors.textMuted,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   dnaPillValue: {
     fontSize: FontSize.sm,

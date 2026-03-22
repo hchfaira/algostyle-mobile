@@ -28,6 +28,7 @@ import type {
   WardrobeSortScoresResponse,
   CapsuleGenerateRequest,
   CapsuleGenerateResponse,
+  WardrobeInsightsResponse,
 } from '../types';
 
 class ApiService {
@@ -167,12 +168,15 @@ class ApiService {
   /**
    * Upload image + save garment (call after user confirms extraction result).
    * All garment attributes go as query params; image is multipart body.
+   * Pass llm_attributes from the analyzeGarmentImage response to skip
+   * flat→nested re-conversion on every future LLM call.
    */
   async addGarmentWithImage(
     userId: string,
     imageUri: string,
     imageBase64: string,
     attributes: GarmentAttributes,
+    llmAttributes?: Record<string, unknown>,
   ): Promise<GarmentItem> {
     if (!userId) throw new Error('Not logged in — userId is missing');
     const params = new URLSearchParams({ user_id: userId, category: attributes.category });
@@ -182,6 +186,7 @@ class ApiService {
     if (attributes.pattern)       params.set('pattern',       attributes.pattern);
     if (attributes.material)      params.set('material',      attributes.material);
     if (attributes.formality)     params.set('formality',     attributes.formality);
+    if (llmAttributes)            params.set('llm_attributes_json', JSON.stringify(llmAttributes));
 
     const form = this.base64ToFormData(imageBase64, 'image');
     const url = `${this.baseUrl}/api/v1/wardrobe/items?${params}`;
@@ -245,6 +250,20 @@ class ApiService {
     if (params.occasion) qs.set('occasion', params.occasion);
     if (params.season)   qs.set('season',   params.season);
     return this.request(`/api/v1/wardrobe/capsule-generate?${qs}`);
+  }
+
+  /**
+   * Wardrobe Insights — all 5 AI analysis features in one call:
+   *   1. Capsule gap analysis
+   *   2. Cost-per-wear ranking
+   *   3. Duplicate detection
+   *   4. Occasion coverage heatmap
+   *   5. Versatility ranking
+   */
+  async getWardrobeInsights(userId: string, refresh = false): Promise<WardrobeInsightsResponse> {
+    const qs = new URLSearchParams({ user_id: userId });
+    if (refresh) qs.set('refresh', 'true');
+    return this.request(`/api/v1/wardrobe/insights?${qs}`);
   }
 
   // ─── Recommendations ──────────────────────────

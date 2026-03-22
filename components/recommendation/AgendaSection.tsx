@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import OutfitMap from '../ui/OutfitMap';
 import type { AgendaEntry } from './constants';
 import { t } from '../../i18n';
@@ -193,61 +193,61 @@ export default function AgendaSection({ entries, selectedId, onSelect, onRemove,
 
 const styles = StyleSheet.create({
   // Section wrapper
-  section: { marginTop: Spacing.xl, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.lg, overflow: 'hidden', backgroundColor: Colors.surface },
+  section: { marginTop: Spacing.lg, borderRadius: BorderRadius.xl, overflow: 'hidden', backgroundColor: Colors.surface, ...Shadow.soft },
 
   // Header
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.surfaceLight },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: 14, backgroundColor: Colors.surfaceLight },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  title: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1.5, textTransform: 'uppercase' },
-  badge: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textSecondary, backgroundColor: Colors.accent + '12', paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, letterSpacing: 0.5, textTransform: 'uppercase' },
-  planBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.accentWarm + '60', borderRadius: BorderRadius.full, backgroundColor: Colors.accentWarm + '10' },
-  planBtnText: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.accentWarm, letterSpacing: 0.5 },
+  title: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
+  badge: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, backgroundColor: Colors.surfaceLight, paddingHorizontal: 12, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border },
+  planBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full, backgroundColor: Colors.surface },
+  planBtnText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.3 },
 
   // Sub-headers (upcoming / past)
-  subHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.success + '08' },
-  subHeaderPast: { backgroundColor: Colors.surfaceLight },
-  subHeaderText: { fontSize: 10, fontWeight: FontWeight.black, letterSpacing: 1.5, textTransform: 'uppercase', flex: 1 },
-  subHeaderCount: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.textMuted, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: Colors.border, borderRadius: BorderRadius.full },
+  subHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: 10, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.surfaceLight },
+  subHeaderPast: { backgroundColor: '#FAFAFA' },
+  subHeaderText: { fontSize: 11, fontWeight: FontWeight.semibold, letterSpacing: 0.3, flex: 1 },
+  subHeaderCount: { fontSize: 10, fontWeight: FontWeight.medium, color: Colors.textMuted, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border },
 
   // Week horizontal strip
   weekScroll: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   weekScrollContent: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.md, gap: Spacing.sm },
-  dayCard: { width: 100, backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.border, borderRadius: BorderRadius.md, padding: Spacing.sm, alignItems: 'center', gap: Spacing.xs },
-  dayCardSelected: { borderColor: Colors.accent, backgroundColor: Colors.accent + '08' },
-  dayLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+  dayCard: { width: 104, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.lg, padding: 10, alignItems: 'center', gap: 5 },
+  dayCardSelected: { borderColor: Colors.accent, backgroundColor: '#FAFAF8' },
+  dayLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.3 },
   dayLabelSelected: { color: Colors.accent },
-  outfitDot: { width: 12, height: 12, borderRadius: 6 },
-  outfitName: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textPrimary, textAlign: 'center' },
-  outfitNameSelected: { color: Colors.accent },
-  locationChip: { flexDirection: 'row', alignItems: 'center', gap: 2, maxWidth: 90 },
-  locationChipText: { fontSize: 10, color: Colors.accentWarm, fontWeight: FontWeight.semibold },
+  outfitDot: { width: 10, height: 10, borderRadius: BorderRadius.full },
+  outfitName: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textPrimary, textAlign: 'center' },
+  outfitNameSelected: { color: Colors.accent, fontWeight: FontWeight.semibold },
+  locationChip: { flexDirection: 'row', alignItems: 'center', gap: 3, maxWidth: 90, backgroundColor: Colors.surfaceLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: BorderRadius.full },
+  locationChipText: { fontSize: 9, color: Colors.textSecondary, fontWeight: FontWeight.medium },
   emptyStrip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.lg, alignItems: 'center', justifyContent: 'center' },
   emptyStripText: { fontSize: FontSize.xs, color: Colors.textMuted, fontStyle: 'italic' },
 
   // Timeline list
-  timeline: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
-  timelineRow: { flexDirection: 'row', gap: Spacing.md, paddingVertical: Spacing.md, alignItems: 'flex-start' },
-  timelineRowSelected: { backgroundColor: Colors.accent + '06', marginHorizontal: -Spacing.lg, paddingHorizontal: Spacing.lg },
-  timelineRowPast: { opacity: 0.6 },
+  timeline: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm },
+  timelineRow: { flexDirection: 'row', gap: Spacing.md, paddingVertical: 12, alignItems: 'flex-start' },
+  timelineRowSelected: { backgroundColor: Colors.surfaceLight, marginHorizontal: -Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: 0 },
+  timelineRowPast: { opacity: 0.55 },
 
   rail: { alignItems: 'center', width: 20, paddingTop: 3 },
-  railDot: { width: 12, height: 12, borderRadius: 6, zIndex: 1 },
-  railLine: { width: 2, flex: 1, backgroundColor: Colors.border, marginTop: -1 },
+  railDot: { width: 10, height: 10, borderRadius: BorderRadius.full, zIndex: 1 },
+  railLine: { width: 1.5, flex: 1, backgroundColor: Colors.border, marginTop: -1 },
 
-  rowContent: { flex: 1, gap: 2 },
+  rowContent: { flex: 1, gap: 3 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 2, flexWrap: 'wrap' },
-  rowDate: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+  rowDate: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.2 },
   rowDatePast: { color: Colors.textMuted },
-  rowOccasion: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textMuted, backgroundColor: Colors.surfaceLight, paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: BorderRadius.sm, overflow: 'hidden' },
-  rowOutfit: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  rowOccasion: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textMuted, backgroundColor: Colors.surfaceLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: BorderRadius.full, overflow: 'hidden' },
+  rowOutfit: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   rowOutfitPast: { color: Colors.textSecondary },
   rowLocation: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  rowLocationText: { fontSize: FontSize.xs, color: Colors.accentWarm, fontWeight: FontWeight.semibold },
+  rowLocationText: { fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium },
   reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   reminderText: { fontSize: 10, color: Colors.textMuted },
-  gradePill: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, borderWidth: 1, borderColor: Colors.accentWarm + '60', backgroundColor: Colors.accentWarm + '10' },
-  gradeText: { fontSize: 10, fontWeight: FontWeight.black, color: Colors.accentWarm, letterSpacing: 0.5 },
+  gradePill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surfaceLight },
+  gradeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.3 },
   rowDelete: { paddingTop: 4 },
 
   // Empty states
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   emptyTimelineText: { fontSize: FontSize.xs, color: Colors.textMuted, fontStyle: 'italic', textAlign: 'center' },
 
   // Map
-  mapSection: { marginTop: Spacing.xl, marginBottom: Spacing.xl, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.lg, overflow: 'hidden', backgroundColor: Colors.surface },
-  mapHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.surfaceLight },
-  mapTitle: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1.5, textTransform: 'uppercase' },
+  mapSection: { marginTop: Spacing.lg, marginBottom: Spacing.xl, borderRadius: BorderRadius.xl, overflow: 'hidden', backgroundColor: Colors.surface, ...Shadow.soft },
+  mapHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: 14, backgroundColor: Colors.surfaceLight },
+  mapTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
 });

@@ -19,12 +19,11 @@ export function StatPill({ value, label, onPress }: StatPillProps) {
 
 const styles = StyleSheet.create({
   statPill: { flex: 1, alignItems: 'center', gap: 2 },
-  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary },
+  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   statLabel: {
     fontSize: 10,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.medium,
     color: Colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.3,
   },
 });

@@ -1,6 +1,6 @@
 /**
  * Shared UI atoms for Style DNA dashboard
- * Quiet luxury — nude palette, black text, animated
+ * Quiet luxury — black, white, nude palette with refined styling
  */
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
@@ -10,28 +10,20 @@ import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Spacing, FontSize, FontWeight, BorderRadius, Shadow, Colors } from '../../constants/theme';
 import { colorHex } from './constants';
 
-const BLACK    = '#1A1A1A';
-const ESPRESSO = '#3B2A1A';
-const GRAY     = '#7A7068';
-const NUDE_BG  = '#FAF7F4';
-const NUDE_ALT = '#F5F0EB';
-const NUDE_BDR = '#E8DDD5';
-const WHITE    = '#FFFFFF';
-
-// ─── Quiet luxury section accents (warm tones, all harmonious) ───
+// ─── Refined nude accent colors (harmonious, muted) ───
 export const SECTION_COLORS = {
-  identity : '#8C7B6E',   // warm taupe
-  palette  : '#B5907A',   // terracotta-nude
-  body     : '#7A8C7E',   // sage
-  face     : '#9C8C7A',   // warm stone
-  skin     : '#A89080',   // dusty blush
-  sizing   : '#7A8A8C',   // slate-sage
-  summary  : '#8C7A5E',   // warm camel
+  identity : '#C4B5A4',   // warm greige
+  palette  : '#D4C4B0',   // soft taupe
+  body     : '#B4A594',   // dusty nude
+  face     : '#C4B0A4',   // warm beige
+  skin     : '#D0C0B0',   // light sand
+  sizing   : '#B4A4A0',   // muted stone
+  summary  : '#C8B8A8',   // warm linen
 };
 
 // ─── Dashboard section card ──────────────────────────────────
 export function DashSection({
-  title, accent = BLACK, icon, children, style,
+  title, accent = Colors.textPrimary, icon, children, style,
 }: {
   title: string;
   accent?: string;
@@ -44,12 +36,12 @@ export function DashSection({
       {/* Header row */}
       <View style={styles.cardHeader}>
         {icon && (
-          <View style={[styles.iconBadge, { backgroundColor: accent + '18' }]}>
-            <Ionicons name={icon as any} size={16} color={accent} />
+          <View style={[styles.iconBadge, { backgroundColor: accent + '15' }]}>
+            <Ionicons name={icon as any} size={18} color={accent} />
           </View>
         )}
-        <Text style={[styles.cardTitle, { color: accent }]}>{title.toUpperCase()}</Text>
-        <View style={[styles.accentLine, { backgroundColor: accent }]} />
+        <Text style={[styles.cardTitle, { color: accent }]}>{title}</Text>
+        <View style={[styles.accentLine, { backgroundColor: accent + '25' }]} />
       </View>
       {children}
     </View>
@@ -66,8 +58,8 @@ export function ColorOrb({
   const isLight = ['#FFFFFF','#FFFFF0','#FFFDD0','#F8F8F0','#F8F8F8'].includes(hex);
   return (
     <Animated.View
-      entering={ZoomIn.delay(index * 50).springify().damping(12)}
-      style={{ alignItems: 'center', gap: 5 }}
+      entering={ZoomIn.delay(index * 40).springify().damping(14)}
+      style={{ alignItems: 'center', gap: 6 }}
     >
       <View
         style={[
@@ -75,7 +67,7 @@ export function ColorOrb({
           {
             width: size, height: size, borderRadius: size / 2,
             backgroundColor: hex,
-            borderColor: isLight ? NUDE_BDR : hex,
+            borderColor: isLight ? Colors.border : hex,
             borderWidth: isLight ? 1.5 : 0,
             opacity: strikethrough ? 0.35 : 1,
           },
@@ -100,19 +92,19 @@ export function Chip({
   label: string; variant?: 'default' | 'avoid' | 'good'; accent?: string;
 }) {
   const bg =
-    variant === 'avoid' ? '#F5E8E8' :
-    variant === 'good'  ? '#E8EDE8' :
-    accent ? accent + '18' :
-    NUDE_ALT;
+    variant === 'avoid' ? Colors.surfaceLight :
+    variant === 'good'  ? '#F8FAF8' :
+    accent ? accent + '12' :
+    Colors.surfaceLight;
   const tc =
-    variant === 'avoid' ? '#8B3A3A' :
-    variant === 'good'  ? '#4A6B4A' :
-    accent ? accent : ESPRESSO;
+    variant === 'avoid' ? Colors.error :
+    variant === 'good'  ? Colors.success :
+    accent ? accent : Colors.textPrimary;
   const bc =
-    variant === 'avoid' ? '#C4909040' :
-    variant === 'good'  ? '#A0B8A040' :
-    accent ? accent + '40' :
-    NUDE_BDR;
+    variant === 'avoid' ? Colors.error + '30' :
+    variant === 'good'  ? Colors.success + '30' :
+    accent ? accent + '25' :
+    Colors.border;
   return (
     <View style={[styles.chip, { backgroundColor: bg, borderColor: bc }]}>
       <Text style={[styles.chipText, { color: tc }]} numberOfLines={1}>
@@ -136,14 +128,14 @@ export function TipRow({ tip, accent = SECTION_COLORS.body }: { tip: string; acc
 export function Divider({ accent }: { accent?: string }) {
   return (
     <View style={styles.dividerWrap}>
-      <View style={[styles.divider, accent ? { backgroundColor: accent + '30' } : null]} />
+      <View style={[styles.divider, accent ? { backgroundColor: accent + '20' } : null]} />
     </View>
   );
 }
 
 // ─── Metric cell ─────────────────────────────────────────────
 export function MetricCell({
-  value, label, accent = BLACK, last = false,
+  value, label, accent = Colors.textPrimary, last = false,
 }: {
   value: string | number; label: string; accent?: string; last?: boolean;
 }) {
@@ -157,17 +149,17 @@ export function MetricCell({
 
 // ─── Attribute row ───────────────────────────────────────────
 export function AttrRow({
-  label, value, accent = BLACK, index = 0,
+  label, value, accent = Colors.textPrimary, index = 0,
 }: {
   label: string; value: string; accent?: string; index?: number;
 }) {
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 60).duration(300)}
+      entering={FadeInDown.delay(index * 50).duration(300)}
       style={styles.attrRow}
     >
       <Text style={styles.attrLabel}>{label}</Text>
-      <View style={[styles.attrValueBadge, { backgroundColor: accent + '15', borderColor: accent + '30' }]}>
+      <View style={[styles.attrValueBadge, { backgroundColor: accent + '12', borderColor: accent + '25' }]}>
         <Text style={[styles.attrValue, { color: accent }]}>{value}</Text>
       </View>
     </Animated.View>
@@ -175,7 +167,7 @@ export function AttrRow({
 }
 
 // ─── Group label ─────────────────────────────────────────────
-export function GroupLabel({ text, accent = GRAY }: { text: string; accent?: string }) {
+export function GroupLabel({ text, accent = Colors.textSecondary }: { text: string; accent?: string }) {
   return (
     <Text style={[styles.groupLabel, { color: accent }]}>{text}</Text>
   );
@@ -201,119 +193,112 @@ export function PillList({ items, color }: { items: string[]; color?: string }) 
 const styles = StyleSheet.create({
   // Card
   card: {
-    backgroundColor: WHITE,
-    marginHorizontal: Spacing.md,
-    marginTop: Spacing.md,
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: NUDE_BDR,
-    shadowColor: ESPRESSO,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Shadow.soft,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   iconBadge: {
-    width: 34, height: 34,
-    borderRadius: BorderRadius.md,
+    width: 36, height: 36,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center', justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 10,
-    fontWeight: FontWeight.black,
-    letterSpacing: 2.5,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 0.5,
   },
   accentLine: {
     flex: 1, height: 1,
     borderRadius: 1,
-    opacity: 0.3,
     marginLeft: Spacing.xs,
   },
 
   // Orbs
   orb: { alignItems: 'center', justifyContent: 'center' },
   orbShadow: {
-    shadowColor: ESPRESSO,
+    shadowColor: '#B8A799',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 2,
   },
-  strikeH: { height: 1.5, backgroundColor: ESPRESSO, position: 'absolute', opacity: 0.5 },
+  strikeH: { height: 1.5, backgroundColor: Colors.textMuted, position: 'absolute', opacity: 0.5 },
   orbLabel: {
-    fontSize: 9, color: GRAY,
+    fontSize: 9, color: Colors.textMuted,
     textTransform: 'capitalize',
-    maxWidth: 52, textAlign: 'center',
+    maxWidth: 54, textAlign: 'center',
     lineHeight: 12,
+    fontWeight: FontWeight.medium,
   },
 
   // Chips
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
-    paddingHorizontal: 11, paddingVertical: 5,
+    paddingHorizontal: 12, paddingVertical: 6,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
   },
   chipText: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.medium,
     textTransform: 'capitalize',
     letterSpacing: 0.2,
   },
 
   // Tips
-  tipRow: { flexDirection: 'row', gap: 10, marginTop: 8, alignItems: 'flex-start' },
-  tipDot: { width: 4, height: 4, borderRadius: 2, marginTop: 8 },
+  tipRow: { flexDirection: 'row', gap: 10, marginTop: 10, alignItems: 'flex-start' },
+  tipDot: { width: 5, height: 5, borderRadius: BorderRadius.full, marginTop: 7 },
   tipText: {
     flex: 1,
     fontSize: FontSize.sm,
-    color: ESPRESSO,
-    lineHeight: 20,
+    color: Colors.textSecondary,
+    lineHeight: 21,
     fontWeight: FontWeight.regular,
   },
 
   // Divider
-  dividerWrap: { marginVertical: Spacing.sm },
-  divider: { height: 1, backgroundColor: NUDE_BDR },
+  dividerWrap: { marginVertical: Spacing.md },
+  divider: { height: 1, backgroundColor: Colors.border },
 
   // Metric cells
-  metricCell: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md, gap: 4 },
-  metricCellBorder: { borderRightWidth: 1, borderRightColor: NUDE_BDR },
+  metricCell: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md, gap: 5 },
+  metricCellBorder: { borderRightWidth: 1, borderRightColor: Colors.border },
   metricValue: {
     fontSize: FontSize.lg,
-    fontWeight: FontWeight.black,
+    fontWeight: FontWeight.bold,
     letterSpacing: -0.3,
   },
   metricLabel: {
     fontSize: 10,
     fontWeight: FontWeight.medium,
-    letterSpacing: 1.2,
-    color: GRAY,
-    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    color: Colors.textMuted,
   },
 
   // Attr rows
   attrRow: {
     flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingVertical: 11,
-    borderBottomWidth: 1, borderBottomColor: NUDE_BDR,
+    alignItems: 'center', paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   attrLabel: {
     fontSize: FontSize.sm,
-    color: GRAY,
+    color: Colors.textSecondary,
     fontWeight: FontWeight.medium,
     letterSpacing: 0.1,
   },
   attrValueBadge: {
     borderRadius: BorderRadius.full, borderWidth: 1,
-    paddingHorizontal: 12, paddingVertical: 4,
+    paddingHorizontal: 12, paddingVertical: 5,
   },
   attrValue: {
     fontSize: FontSize.sm,
@@ -324,11 +309,10 @@ const styles = StyleSheet.create({
 
   // Group label
   groupLabel: {
-    fontSize: 10,
-    fontWeight: FontWeight.black,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xs,
+    fontSize: 11,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 0.3,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
   },
 });

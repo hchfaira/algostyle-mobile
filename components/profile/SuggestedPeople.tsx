@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { MOCK_SUGGESTIONS } from './constants';
 
 interface SuggestedPeopleProps {
@@ -41,15 +41,15 @@ export function SuggestedPeople({ following, onToggleFollow }: SuggestedPeoplePr
 const styles = StyleSheet.create({
   section: { marginHorizontal: Spacing.lg, marginBottom: Spacing.lg },
   sectionTitle: {
-    fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted,
-    letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md,
+    fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    letterSpacing: 0.3, marginBottom: Spacing.md,
   },
   personRow: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
     paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   personAvatar: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 40, height: 40, borderRadius: BorderRadius.full,
     backgroundColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -59,8 +59,9 @@ const styles = StyleSheet.create({
   followBtn: {
     paddingHorizontal: 16, paddingVertical: 7,
     borderWidth: 1, borderColor: Colors.textPrimary,
+    borderRadius: BorderRadius.full,
   },
   followBtnActive: { backgroundColor: Colors.textPrimary },
-  followBtnText: { fontSize: 11, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
+  followBtnText: { fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
   followBtnTextActive: { color: '#FFF' },
 });

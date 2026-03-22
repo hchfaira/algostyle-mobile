@@ -10,7 +10,7 @@ import {
   ScrollView, TextInput, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { TopBar } from '../../components/ui';
 import {
   ListingCard, FilterSheet, ItemDetailModal,
@@ -222,17 +222,18 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
     marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.md,
-    backgroundColor: '#FFF', borderWidth: 1, borderColor: Colors.border, borderRadius: 0,
+    backgroundColor: Colors.surfaceLight, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full,
     paddingHorizontal: Spacing.md, height: 48,
   },
   searchInput: { flex: 1, color: Colors.textPrimary, fontSize: FontSize.md },
   filterBtn: {
-    width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border, backgroundColor: '#FFF',
+    width: 38, height: 38, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.full,
   },
   filterBtnActive: { backgroundColor: Colors.textPrimary, borderColor: Colors.textPrimary },
   filterBadge: {
-    position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: 9,
+    position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: BorderRadius.full,
     backgroundColor: Colors.error, alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: '#FFF',
   },
@@ -247,34 +248,35 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
   sourceTabActive: { backgroundColor: 'transparent', borderBottomColor: Colors.textPrimary },
-  sourceTabLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
-  sourceTabLabelActive: { color: Colors.textPrimary, fontWeight: FontWeight.black },
+  sourceTabLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.medium, color: Colors.textMuted, letterSpacing: 0.3 },
+  sourceTabLabelActive: { color: Colors.textPrimary, fontWeight: FontWeight.bold },
 
   catList: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg, gap: 8 },
   catTab: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Colors.border, borderRadius: 0,
+    paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full,
   },
   catTabActive: { backgroundColor: Colors.textPrimary, borderColor: Colors.textPrimary },
-  catLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  catLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
   catLabelActive: { color: '#FFF' },
 
   activeChipsWrapper: { maxHeight: 50, marginBottom: Spacing.md },
   activeChips: { paddingHorizontal: Spacing.lg, gap: 8, flexDirection: 'row', alignItems: 'center' },
   activeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8,
-    borderWidth: 1, borderColor: Colors.textPrimary, backgroundColor: Colors.surface,
+    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surfaceLight,
+    borderRadius: BorderRadius.full,
   },
-  activeChipText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
-  clearAllChip: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: Colors.textPrimary },
-  clearAllText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: '#FFF', letterSpacing: 1, textTransform: 'uppercase' },
+  activeChipText: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textPrimary, letterSpacing: 0.2 },
+  clearAllChip: { paddingHorizontal: 14, paddingVertical: 8, backgroundColor: Colors.textPrimary, borderRadius: BorderRadius.full },
+  clearAllText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: '#FFF', letterSpacing: 0.3 },
 
   grid: { paddingHorizontal: Spacing.lg, paddingBottom: 120, paddingTop: Spacing.md },
   gridRow: { gap: CARD_GAP, marginBottom: 24 },
 
   empty: { alignItems: 'center', paddingTop: 70, paddingHorizontal: Spacing.xl, gap: Spacing.md },
-  emptyTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 2 },
+  emptyTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   emptyDesc: { fontSize: FontSize.md, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 },
-  emptyBtn: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderWidth: 1, borderColor: Colors.accent, marginTop: Spacing.sm },
-  emptyBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.accent, letterSpacing: 1.5 },
+  emptyBtn: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderWidth: 1, borderColor: Colors.accent, marginTop: Spacing.sm, borderRadius: BorderRadius.full },
+  emptyBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.accent, letterSpacing: 0.5 },
 });

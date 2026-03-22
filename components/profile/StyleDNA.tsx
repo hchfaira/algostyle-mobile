@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { DnaPill } from './DnaPill';
 import type { UserProfile } from '../../types';
 
@@ -49,24 +49,25 @@ const styles = StyleSheet.create({
   dnaSection: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     backgroundColor: Colors.surfaceLight,
+    borderRadius: BorderRadius.xl,
   },
   sectionTitle: {
-    fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted,
-    letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md,
+    fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    letterSpacing: 0.3, marginBottom: Spacing.md,
   },
   dnaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md },
   dnaSubtitle: {
-    fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textMuted,
-    letterSpacing: 1, textTransform: 'uppercase', marginBottom: Spacing.xs, marginTop: Spacing.xs,
+    fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    letterSpacing: 0.3, marginBottom: Spacing.xs, marginTop: Spacing.xs,
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
-  chip: { paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: Colors.accent },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full, backgroundColor: Colors.surface },
   chipColor: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full, backgroundColor: Colors.surface,
   },
-  colorDot: { width: 10, height: 10, borderRadius: 5 },
+  colorDot: { width: 10, height: 10, borderRadius: BorderRadius.full },
   chipText: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textPrimary },
 });

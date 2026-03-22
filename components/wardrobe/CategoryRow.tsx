@@ -14,7 +14,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { CATEGORY_ICONS } from './constants';
 import GarmentCard from './GarmentCard';
 import type { GarmentItem } from '../../types';
@@ -141,19 +141,19 @@ export default CategoryRow;
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   header: {
     flexDirection:     'row',
     alignItems:        'center',
     justifyContent:    'space-between',
     paddingHorizontal: H_PAD,
-    paddingTop:        Spacing.md,
-    paddingBottom:     10,
+    paddingTop:        Spacing.md + 2,
+    paddingBottom:     12,
   },
   headerCollapsed: {
     paddingBottom: Spacing.md,
-    opacity:       0.5,
+    opacity:       0.4,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize:      FontSize.sm,
-    fontWeight:    FontWeight.black,
+    fontWeight:    FontWeight.bold,
     color:         Colors.textPrimary,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
@@ -171,15 +171,16 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   countPill: {
-    backgroundColor:  Colors.surfaceLight,
-    borderWidth:      1,
-    borderColor:      Colors.border,
-    paddingHorizontal: 6,
-    paddingVertical:  2,
+    backgroundColor:   Colors.surfaceLight,
+    borderWidth:       1,
+    borderColor:       Colors.border,
+    borderRadius:      BorderRadius.full,
+    paddingHorizontal: 8,
+    paddingVertical:   2,
   },
   countText: {
     fontSize:   10,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.semibold,
     color:      Colors.textMuted,
   },
   rowContent: {
@@ -191,17 +192,24 @@ const styles = StyleSheet.create({
     alignItems:        'center',
     gap:               Spacing.sm,
     paddingHorizontal: H_PAD,
-    paddingVertical:   Spacing.md,
+    paddingVertical:   Spacing.lg,
+    marginHorizontal:  H_PAD,
+    backgroundColor:   Colors.surfaceLight,
+    borderRadius:      BorderRadius.lg,
+    borderWidth:       1,
+    borderColor:       Colors.border,
+    borderStyle:       'dashed',
   },
   emptyText: {
     fontSize:   FontSize.sm,
     color:      Colors.textMuted,
-    fontStyle:  'italic',
   },
   divider: {
     height:            1,
     backgroundColor:   Colors.border,
-    marginHorizontal:  H_PAD,
-    marginTop:         Spacing.xs,
+    marginHorizontal:  H_PAD + 8,
+    marginTop:         Spacing.sm,
+    borderRadius:      1,
+    opacity:           0.6,
   },
 });

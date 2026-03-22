@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { StatPill } from './StatPill';
 import { MOCK_SOCIAL } from './constants';
 
@@ -91,18 +91,18 @@ const styles = StyleSheet.create({
     width: 84, height: 84,
     backgroundColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center',
-    borderRadius: 42,
+    borderRadius: BorderRadius.full,
   },
   avatarEditBtn: {
     position: 'absolute', bottom: 0, right: 0,
-    width: 28, height: 28, borderRadius: 14,
+    width: 28, height: 28, borderRadius: BorderRadius.full,
     backgroundColor: Colors.surface,
     borderWidth: 1.5, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
   nameRow: { flexDirection: 'row', alignItems: 'center' },
-  nameText: { fontSize: FontSize.xl, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1.5 },
-  handleText: { fontSize: FontSize.sm, color: Colors.textMuted, marginTop: 3, letterSpacing: 0.5 },
+  nameText: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.3 },
+  handleText: { fontSize: FontSize.sm, color: Colors.textMuted, marginTop: 3, letterSpacing: 0.3 },
   bioRow: { flexDirection: 'row', alignItems: 'center', marginTop: Spacing.sm, paddingHorizontal: Spacing.md },
   bioText: { fontSize: FontSize.sm, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20, flexShrink: 1 },
   socialStats: {
@@ -119,16 +119,16 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, width: '100%' },
   editProfileBtn: {
     flex: 1, height: 40, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.textPrimary,
+    borderWidth: 1, borderColor: Colors.textPrimary, borderRadius: BorderRadius.full,
   },
-  editProfileText: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1.5, textTransform: 'uppercase' },
+  editProfileText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.5 },
   requestsBtn: {
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border, position: 'relative',
+    borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full, position: 'relative',
   },
   requestBadge: {
     position: 'absolute', top: -6, right: -6,
-    width: 18, height: 18, borderRadius: 9,
+    width: 18, height: 18, borderRadius: BorderRadius.full,
     backgroundColor: Colors.error,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: '#FFF',

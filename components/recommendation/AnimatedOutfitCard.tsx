@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, Layout, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import { ScoreBar } from '../ui';
 import type { OutfitResult } from '../../types';
 
@@ -92,47 +92,46 @@ export default function AnimatedOutfitCard({ item, index }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
     padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.xl,
     position: 'relative',
     overflow: 'hidden',
+    ...Shadow.soft,
   },
   rankBadge: {
     position: 'absolute', top: 0, right: 0, zIndex: 1,
     backgroundColor: Colors.accent,
     paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
-    borderBottomLeftRadius: BorderRadius.md,
+    borderBottomLeftRadius: BorderRadius.lg,
   },
-  rankText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1 },
+  rankText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: '#FFF', letterSpacing: 0.5 },
   garmentStrip: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg, marginTop: Spacing.sm },
   garmentDot: {
-    width: 56, height: 56, borderRadius: 28,
+    width: 52, height: 52, borderRadius: BorderRadius.full,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+    ...Shadow.soft,
   },
-  outfitName: { fontSize: FontSize.xl, fontWeight: FontWeight.black, color: Colors.textPrimary, marginBottom: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.5 },
+  outfitName: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: Spacing.md, letterSpacing: -0.3 },
   scoreRow: { flexDirection: 'row', gap: Spacing.lg, marginBottom: Spacing.lg, alignItems: 'center' },
   scoreCircle: {
-    width: 68, height: 68, borderRadius: 34,
-    borderWidth: 3, borderColor: Colors.accent,
+    width: 64, height: 64, borderRadius: 32,
+    borderWidth: 2.5, borderColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
     backgroundColor: Colors.background,
   },
-  scoreValue: { fontSize: FontSize.xxl, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: -1 },
-  scoreUnit: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 6, fontWeight: FontWeight.bold },
+  scoreValue: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -1 },
+  scoreUnit: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 6, fontWeight: FontWeight.medium },
   scoreBars: { flex: 1, gap: 4 },
   explanation: { fontSize: FontSize.md, color: Colors.textSecondary, lineHeight: 22, marginBottom: Spacing.lg, fontStyle: 'italic' },
   actions: { flexDirection: 'row', gap: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: Spacing.lg, alignItems: 'center' },
   actionBtn: {
     width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.background, borderRadius: 22, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border,
   },
   actionBtnWear: {
     flexDirection: 'row', width: 'auto', paddingHorizontal: Spacing.xl, height: 44,
-    borderRadius: 22, gap: Spacing.sm, marginLeft: 'auto',
+    borderRadius: BorderRadius.full, gap: Spacing.sm, marginLeft: 'auto',
     backgroundColor: Colors.accent, borderWidth: 0,
   },
-  actionWearText: { fontSize: FontSize.sm, color: '#FFF', fontWeight: FontWeight.bold, letterSpacing: 1 },
+  actionWearText: { fontSize: FontSize.sm, color: '#FFF', fontWeight: FontWeight.semibold, letterSpacing: 0.5 },
 });

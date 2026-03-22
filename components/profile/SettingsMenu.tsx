@@ -31,8 +31,8 @@ export function SettingsMenu({ menuItems }: SettingsMenuProps) {
 const styles = StyleSheet.create({
   section: { marginHorizontal: Spacing.lg, marginBottom: Spacing.lg },
   sectionTitle: {
-    fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted,
-    letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.md,
+    fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    letterSpacing: 0.3, marginBottom: Spacing.md,
   },
   menuItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

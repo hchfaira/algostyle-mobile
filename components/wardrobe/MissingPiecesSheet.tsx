@@ -42,8 +42,8 @@ function RoiBadge({ roi }: { roi: number }) {
 }
 
 const roiStyles = StyleSheet.create({
-  badge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 2 },
-  text: { fontSize: 10, fontWeight: FontWeight.black, letterSpacing: 0.5 },
+  badge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: BorderRadius.full },
+  text: { fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.4 },
 });
 
 export default function MissingPiecesSheet({ visible, onClose, loading, data }: Props) {
@@ -117,17 +117,19 @@ export default function MissingPiecesSheet({ visible, onClose, loading, data }: 
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.40)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: 40,
     maxHeight: '85%',
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
   },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  handle: { width: 40, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  title: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 2 },
+  title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 1 },
   subtitle: { fontSize: FontSize.sm, color: Colors.textMuted, lineHeight: 20 },
   loading: { paddingVertical: 60, alignItems: 'center', gap: Spacing.md },
   loadingText: { color: Colors.textMuted, fontSize: FontSize.sm },
@@ -135,9 +137,10 @@ const styles = StyleSheet.create({
   insightBanner: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    backgroundColor: Colors.accent + '08',
+    backgroundColor: Colors.surfaceLight,
     borderLeftWidth: 3,
     borderLeftColor: Colors.accent,
+    borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
   },
@@ -151,14 +154,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  rank: { width: 20, fontSize: FontSize.sm, fontWeight: FontWeight.black, color: Colors.textMuted, textAlign: 'center' },
-  swatch: { width: 48, height: 58, alignItems: 'center', justifyContent: 'center' },
-  pieceInfo: { flex: 1, gap: 4 },
+  rank: { width: 22, fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textMuted, textAlign: 'center' },
+  swatch: { width: 48, height: 60, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  pieceInfo: { flex: 1, gap: 5 },
   pieceHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm },
-  pieceName: { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  pieceName: { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
   pieceReason: { fontSize: FontSize.xs, color: Colors.textMuted, lineHeight: 16 },
   pieceMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  outfitsChip: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  outfitsText: { fontSize: 10, color: Colors.success, fontWeight: FontWeight.bold },
+  outfitsChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.surfaceLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: BorderRadius.full },
+  outfitsText: { fontSize: 10, color: Colors.textPrimary, fontWeight: FontWeight.semibold },
   priceText: { fontSize: FontSize.xs, color: Colors.textMuted, fontWeight: FontWeight.medium },
 });

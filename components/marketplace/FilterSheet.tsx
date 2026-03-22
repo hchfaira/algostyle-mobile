@@ -7,7 +7,7 @@ import {
   Pressable, ScrollView, TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import {
   Source, Condition, SortKey,
   CONDITIONS, SORTS, SIZES,
@@ -161,35 +161,35 @@ export default function FilterSheet({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: Colors.background, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, maxHeight: '88%' },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: Colors.background, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, maxHeight: '88%', borderTopLeftRadius: BorderRadius.xl + 4, borderTopRightRadius: BorderRadius.xl + 4 },
+  handle: { width: 36, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.lg },
-  sheetTitle: { flex: 1, fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 2 },
-  sheetReset: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.accentWarm, marginRight: Spacing.lg, letterSpacing: 1, textTransform: 'uppercase' },
+  sheetTitle: { flex: 1, fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.3 },
+  sheetReset: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, marginRight: Spacing.lg, letterSpacing: 0.3 },
   filterSectionLabel: {
-    fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted,
-    letterSpacing: 2, textTransform: 'uppercase', marginBottom: Spacing.sm, marginTop: Spacing.lg,
+    fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textSecondary,
+    letterSpacing: 0.3, marginBottom: Spacing.sm, marginTop: Spacing.lg,
   },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   filterCol: { gap: 1 },
-  filterOption: { paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: Colors.border },
+  filterOption: { paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full },
   filterOptionActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  filterOptionText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  filterOptionText: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textSecondary, letterSpacing: 0.2 },
   filterOptionTextActive: { color: '#FFF' },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  priceInput: { flex: 1, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
-  priceLabel: { fontSize: 9, fontWeight: FontWeight.black, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 3 },
+  priceInput: { flex: 1, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.lg },
+  priceLabel: { fontSize: 9, fontWeight: FontWeight.semibold, color: Colors.textMuted, letterSpacing: 0.3, marginBottom: 3 },
   priceField: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   priceDivider: { width: 16, height: 1, backgroundColor: Colors.border },
   sizeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  sizeChip: { paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: Colors.border, minWidth: 48, alignItems: 'center' },
+  sizeChip: { paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: Colors.border, minWidth: 48, alignItems: 'center', borderRadius: BorderRadius.lg },
   sizeChipActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  sizeChipText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textSecondary, textTransform: 'uppercase' },
+  sizeChipText: { fontSize: FontSize.xs, fontWeight: FontWeight.medium, color: Colors.textSecondary },
   sizeChipTextActive: { color: '#FFF' },
   sortRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: Colors.border },
   sortLabel: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: FontWeight.medium },
   sortLabelActive: { color: Colors.textPrimary, fontWeight: FontWeight.bold },
-  applyBtn: { backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center', height: 48, marginTop: Spacing.md, marginBottom: 32 },
-  applyBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 2, textTransform: 'uppercase' },
+  applyBtn: { backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center', height: 48, marginTop: Spacing.md, marginBottom: 32, borderRadius: BorderRadius.full },
+  applyBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: '#FFF', letterSpacing: 0.5 },
 });

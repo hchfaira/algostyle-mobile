@@ -168,29 +168,29 @@ export default function OutfitHistoryModal({ visible, entries, onClose, onSelect
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: Colors.background, maxHeight: '92%', borderTopLeftRadius: BorderRadius.lg, borderTopRightRadius: BorderRadius.lg, overflow: 'hidden' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  modal: { backgroundColor: Colors.background, maxHeight: '92%', borderTopLeftRadius: BorderRadius.xl + 4, borderTopRightRadius: BorderRadius.xl + 4, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  title: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1.5, textTransform: 'uppercase' },
+  title: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
 
   // Tabs
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabActive: { borderBottomColor: Colors.accent },
-  tabText: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
+  tabText: { fontSize: 11, fontWeight: FontWeight.semibold, color: Colors.textMuted, letterSpacing: 0.3 },
   tabTextActive: { color: Colors.textPrimary },
-  tabBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: BorderRadius.full, backgroundColor: Colors.border },
-  tabBadgeText: { fontSize: 9, fontWeight: FontWeight.black, color: Colors.textSecondary },
+  tabBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: BorderRadius.full, backgroundColor: Colors.surfaceLight, borderWidth: 1, borderColor: Colors.border },
+  tabBadgeText: { fontSize: 9, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
 
   // List
   content: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
   historyItem: { flexDirection: 'row', gap: Spacing.md, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, alignItems: 'flex-start' },
-  itemBadge: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  itemBadge: { width: 40, height: 40, borderRadius: BorderRadius.full, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   itemContent: { flex: 1, gap: Spacing.xs },
-  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   sourceRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   sourceTag: { fontSize: 10, color: Colors.textMuted, fontWeight: FontWeight.medium },
-  gradeTag: { fontSize: 10, fontWeight: FontWeight.black, color: Colors.accentWarm, paddingHorizontal: 5, paddingVertical: 1, borderWidth: 1, borderColor: Colors.accentWarm + '60', borderRadius: 3 },
+  gradeTag: { fontSize: 10, fontWeight: FontWeight.semibold, color: Colors.textSecondary, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full, backgroundColor: Colors.surfaceLight },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   itemText: { fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium },
 

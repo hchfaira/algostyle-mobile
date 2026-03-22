@@ -92,7 +92,7 @@ export default function GarmentUploadFlow({ visible, imageUri, imageBase64, user
     if (!result) return;
     setStep('saving');
     try {
-      const garment = await api.addGarmentWithImage(userId, imageUri, imageBase64, result.attributes);
+      const garment = await api.addGarmentWithImage(userId, imageUri, imageBase64, result.attributes, result.llm_attributes ?? undefined);
       onGarmentAdded(garment.attributes);
       handleClose();
     } catch {

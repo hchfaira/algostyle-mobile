@@ -7,7 +7,7 @@ import {
   Pressable, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import {
   ListingItem, CATEGORIES, BADGE_COLORS,
   CONDITION_LABELS, formatPrice,
@@ -121,28 +121,28 @@ export default function ItemDetailModal({ visible, item, onClose, onToggleFav }:
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
-  detailSheet: { backgroundColor: Colors.background, paddingHorizontal: 0, paddingTop: Spacing.md, maxHeight: '90%' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  handle: { width: 36, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  detailSheet: { backgroundColor: Colors.background, paddingHorizontal: 0, paddingTop: Spacing.md, maxHeight: '90%', borderTopLeftRadius: BorderRadius.xl + 4, borderTopRightRadius: BorderRadius.xl + 4, overflow: 'hidden' },
   detailImg: { width: '100%', height: 240, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  badge: { position: 'absolute', top: 0, left: 0, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: Colors.accent },
-  badgeText: { fontSize: 10, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1.5 },
-  detailFavBtn: { position: 'absolute', top: 12, right: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', top: 0, left: 0, paddingHorizontal: 10, paddingVertical: 6, borderBottomRightRadius: BorderRadius.md, backgroundColor: Colors.accent },
+  badgeText: { fontSize: 10, fontWeight: FontWeight.bold, color: '#FFF', letterSpacing: 0.5 },
+  detailFavBtn: { position: 'absolute', top: 12, right: 16, width: 36, height: 36, borderRadius: BorderRadius.full, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
   detailBody: { paddingHorizontal: Spacing.lg },
-  detailBrand: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: Spacing.lg },
-  detailTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.black, color: Colors.textPrimary, marginTop: 4, lineHeight: 28 },
+  detailBrand: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textMuted, letterSpacing: 0.5, marginTop: Spacing.lg },
+  detailTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: 4, lineHeight: 28, letterSpacing: -0.3 },
   detailPriceRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
-  detailPrice: { fontSize: FontSize.xxl, fontWeight: FontWeight.black, color: Colors.textPrimary },
+  detailPrice: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   detailOriginal: { fontSize: FontSize.md, color: Colors.textMuted, textDecorationLine: 'line-through' },
-  discountBadge: { backgroundColor: Colors.error, paddingHorizontal: 8, paddingVertical: 3 },
-  discountText: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: '#FFF' },
+  discountBadge: { backgroundColor: Colors.error, paddingHorizontal: 8, paddingVertical: 3, borderRadius: BorderRadius.full },
+  discountText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: '#FFF' },
   detailMeta: { marginTop: Spacing.lg, borderTopWidth: 1, borderTopColor: Colors.border },
   detailMetaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  detailMetaLabel: { flex: 1, fontSize: FontSize.sm, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  detailMetaLabel: { flex: 1, fontSize: FontSize.sm, color: Colors.textMuted, letterSpacing: 0.2 },
   detailMetaValue: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
   detailActions: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, paddingBottom: 32, borderTopWidth: 1, borderTopColor: Colors.border },
-  detailSecondary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: Spacing.lg, borderWidth: 1, borderColor: Colors.border },
-  detailSecondaryText: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
-  detailPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, backgroundColor: Colors.accent },
-  detailPrimaryText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1.5, textTransform: 'uppercase' },
+  detailSecondary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: Spacing.lg, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.full },
+  detailSecondaryText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
+  detailPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, backgroundColor: Colors.accent, borderRadius: BorderRadius.full },
+  detailPrimaryText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: '#FFF', letterSpacing: 0.5 },
 });

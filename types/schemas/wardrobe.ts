@@ -27,6 +27,9 @@ export interface GarmentItem {
   tags: string[];
   times_worn: number;
   last_worn?: string;
+  // Cost-per-wear fields (optional — only set when user enters purchase price)
+  purchase_price?: number;
+  worn_count?: number;
   created_at: string;
 }
 
@@ -45,6 +48,8 @@ export interface GarmentExtractionResult {
   garments_detected: number;
   confidence: number;
   cropped_image_b64: string | null;
+  /** LLM-native nested attributes stored verbatim — forwarded to POST /items to skip re-conversion */
+  llm_attributes: Record<string, unknown> | null;
 }
 
 
@@ -226,4 +231,69 @@ export interface CapsuleGenerateResponse {
   missing: MissingPiece[];     // top gaps to complete the capsule
   combination_count: number;   // total outfits possible
   insight: string;             // 1-sentence AI summary
+}
+
+// ─── Wardrobe Insights (5 AI features) ─────────────
+
+/** 1. Capsule gap */
+export interface GapItem {
+  gap_type: string;         // category_missing | color_imbalance | formality_gap | season_gap
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  recommendation: string;
+}
+
+/** 2. Cost-per-wear */
+export interface CostPerWearItem {
+  garment_id: string;
+  garment_description: string;
+  purchase_price: number;
+  worn_count: number;
+  cost_per_wear: number;
+  value_tier: 'excellent' | 'good' | 'fair' | 'poor' | 'unworn';
+}
+
+/** 3. Duplicate detection */
+export interface DuplicateGroup {
+  garment_ids: string[];
+  descriptions: string[];
+  shared_category: string;
+  shared_color: string;
+  shared_pattern: string;
+  similarity_score: number;  // 0–1
+  recommendation: string;
+}
+
+/** 4. Occasion coverage */
+export interface OccasionCoverageItem {
+  occasion: string;
+  coverage_score: number;    // 0–1
+  suitable_items_count: number;
+  missing_categories: string[];
+  suggestion?: string;
+}
+
+/** 5. Versatility ranking */
+export interface VersatilityItem {
+  garment_id: string;
+  garment_description: string;
+  versatility_score: number;         // 0–1
+  compatible_outfit_count: number;
+  compatible_categories: string[];
+  compatible_occasions: string[];
+}
+
+/** Combined response — all 5 features */
+export interface WardrobeInsightsResponse {
+  gaps: GapItem[];
+  cost_per_wear: CostPerWearItem[];
+  has_price_data: boolean;
+  duplicate_groups: DuplicateGroup[];
+  total_duplicates: number;
+  occasion_coverage: OccasionCoverageItem[];
+  overall_coverage_score: number;
+  versatility_ranking: VersatilityItem[];
+  overall_score: number;
+  summary: string;
+  cached: boolean;
 }

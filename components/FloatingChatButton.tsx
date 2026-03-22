@@ -163,9 +163,9 @@ export const FloatingChatButton: React.FC = () => {
           {
             bottom: insets.bottom + 90, // sits above tab bar
             transform: [{ translateY: floatY }, { scale: scaleAnim }],
+            pointerEvents: 'box-none',
           },
         ]}
-        pointerEvents="box-none"
       >
         {/* Animated glow ring */}
         <Animated.View style={[fab.ring, { opacity: ringOpacity }]} />

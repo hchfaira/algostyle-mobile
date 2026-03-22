@@ -257,13 +257,14 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: Colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
     maxHeight: SCREEN_H * 0.92,
     paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    ...Shadow.soft,
   },
   handle: {
-    width: 40, height: 4, borderRadius: 2,
+    width: 40, height: 4, borderRadius: BorderRadius.full,
     backgroundColor: Colors.border,
     alignSelf: 'center', marginTop: 10, marginBottom: 4,
   },
@@ -272,24 +273,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.3 },
   instructions: {
     fontSize: FontSize.sm, color: Colors.textSecondary, lineHeight: 20,
     backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.md, padding: Spacing.sm,
+    fontWeight: FontWeight.regular,
   },
 
   optionBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: BorderRadius.lg, padding: Spacing.md, ...Shadow.sm,
+    borderRadius: BorderRadius.lg, padding: Spacing.md, ...Shadow.soft,
   },
   optionIcon: {
-    width: 44, height: 44, borderRadius: 12,
+    width: 44, height: 44, borderRadius: BorderRadius.lg,
     backgroundColor: Colors.accent,
     alignItems: 'center', justifyContent: 'center',
   },
-  optionTitle: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
-  optionSub: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2 },
+  optionTitle: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: -0.2 },
+  optionSub: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2, fontWeight: FontWeight.regular },
 
   confirmRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -299,17 +301,19 @@ const styles = StyleSheet.create({
   changeLink: { fontSize: FontSize.sm, color: Colors.info, fontWeight: FontWeight.semibold },
 
   inputGroup: { gap: 6 },
-  inputLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
+  inputLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: -0.1 },
   textInput: {
     borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md, paddingVertical: 12,
     fontSize: FontSize.md, color: Colors.textPrimary, backgroundColor: Colors.surface,
+    fontWeight: FontWeight.regular,
   },
 
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: Colors.accent, borderRadius: BorderRadius.md, paddingVertical: 16,
     marginTop: 8,
+    ...Shadow.soft,
   },
-  submitBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textOnAccent },
+  submitBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textOnAccent, letterSpacing: 0.5 },
 });

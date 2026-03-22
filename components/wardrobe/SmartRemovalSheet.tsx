@@ -50,9 +50,9 @@ function RiskBar({ score }: { score: number }) {
 
 const riskStyles = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  track: { flex: 1, height: 3, backgroundColor: Colors.border, overflow: 'hidden' },
-  fill: { height: '100%' },
-  num: { width: 34, fontSize: 10, fontWeight: FontWeight.black },
+  track: { flex: 1, height: 4, backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: BorderRadius.full },
+  num: { width: 34, fontSize: 10, fontWeight: FontWeight.bold },
 });
 
 function ImpactChip({ impact }: { impact: string }) {
@@ -71,8 +71,8 @@ function ImpactChip({ impact }: { impact: string }) {
 }
 
 const impactStyles = StyleSheet.create({
-  chip: { paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1 },
-  text: { fontSize: 9, fontWeight: FontWeight.black, letterSpacing: 0.5 },
+  chip: { paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderRadius: BorderRadius.full },
+  text: { fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5 },
 });
 
 export default function SmartRemovalSheet({
@@ -239,44 +239,47 @@ export default function SmartRemovalSheet({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.40)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: 40,
     maxHeight: '88%',
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
   },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  handle: { width: 40, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  title: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 2 },
+  title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 1 },
   subtitle: { fontSize: FontSize.sm, color: Colors.textMuted },
   loading: { paddingVertical: 60, alignItems: 'center', gap: Spacing.md },
   loadingText: { color: Colors.textMuted, fontSize: FontSize.sm },
 
   profileRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
   profileBtn: {
-    flex: 1, alignItems: 'center', paddingVertical: Spacing.sm, gap: 2,
+    flex: 1, alignItems: 'center', paddingVertical: Spacing.md, gap: 3,
     borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surfaceLight,
+    borderRadius: BorderRadius.lg,
   },
   profileBtnActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  profileBtnLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  profileBtnLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4 },
   profileBtnLabelActive: { color: Colors.textOnAccent },
   profileBtnDesc: { fontSize: 9, color: Colors.textMuted },
 
   summaryBar: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
-    borderWidth: 1, borderColor: Colors.border, padding: Spacing.md, marginBottom: Spacing.sm,
+    borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm,
   },
-  summaryItem: { alignItems: 'center', gap: 2 },
-  summaryNum: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary },
+  summaryItem: { alignItems: 'center', gap: 3 },
+  summaryNum: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   summaryLabel: { fontSize: 9, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryDivider: { flex: 1 },
 
   insightBanner: {
     flexDirection: 'row', gap: Spacing.sm,
-    backgroundColor: Colors.info + '10', borderLeftWidth: 3, borderLeftColor: Colors.info,
-    padding: Spacing.sm, marginBottom: Spacing.md,
+    backgroundColor: Colors.surfaceLight, borderLeftWidth: 3, borderLeftColor: Colors.textMuted,
+    padding: Spacing.sm, marginBottom: Spacing.md, borderRadius: BorderRadius.md,
   },
   insightText: { flex: 1, fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 16 },
 
@@ -286,13 +289,13 @@ const styles = StyleSheet.create({
 
   candidateCard: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.md },
-  rank: { width: 20, fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textMuted, textAlign: 'center' },
-  swatch: { width: 44, height: 52, alignItems: 'center', justifyContent: 'center' },
-  itemInfo: { flex: 1, gap: 4 },
-  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  rank: { width: 22, fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textMuted, textAlign: 'center' },
+  swatch: { width: 46, height: 56, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  itemInfo: { flex: 1, gap: 5 },
+  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
 
   expanded: { paddingBottom: Spacing.md, paddingLeft: 72, gap: Spacing.sm },
-  subLabel: { fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
+  subLabel: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
   reason: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 18 },
   outfitCount: { fontSize: FontSize.xs, color: Colors.textSecondary, fontStyle: 'italic' },
   idea: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 18 },

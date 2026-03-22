@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { CATEGORY_ICONS } from './constants';
 import type { FlaggedItem } from '../../types';
 
@@ -151,19 +151,19 @@ export default function ClosetAuditSheet({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: Colors.background, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: 40, maxHeight: '85%' },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.40)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: Colors.background, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: 40, maxHeight: '85%', borderTopLeftRadius: BorderRadius.xl + 4, borderTopRightRadius: BorderRadius.xl + 4 },
+  handle: { width: 40, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.md },
-  title: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 2 },
+  title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: 4, letterSpacing: 1 },
   subtitle: { fontSize: FontSize.sm, color: Colors.textMuted, marginBottom: Spacing.lg, lineHeight: 20 },
   loading: { paddingVertical: 60, alignItems: 'center' },
   loadingText: { color: Colors.textMuted, fontSize: FontSize.sm, marginTop: Spacing.md },
 
-  auditSummary: { flexDirection: 'row', marginBottom: Spacing.lg },
-  pill: { flex: 1, alignItems: 'center', paddingVertical: Spacing.sm, borderWidth: 1, marginRight: Spacing.sm },
-  pillNum: { fontSize: FontSize.xl, fontWeight: FontWeight.black },
-  pillLabel: { fontSize: 9, color: Colors.textMuted, fontWeight: FontWeight.bold, letterSpacing: 1, textTransform: 'uppercase', marginTop: 2 },
+  auditSummary: { flexDirection: 'row', marginBottom: Spacing.lg, gap: Spacing.sm },
+  pill: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md, borderWidth: 1, borderRadius: BorderRadius.lg },
+  pillNum: { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+  pillLabel: { fontSize: 9, color: Colors.textMuted, fontWeight: FontWeight.semibold, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 3 },
 
   empty: { alignItems: 'center', paddingVertical: 48 },
   emptyTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: Spacing.sm },
@@ -171,18 +171,18 @@ const styles = StyleSheet.create({
 
   auditCard: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   cardHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md },
-  swatch: { width: 48, height: 56, alignItems: 'center', justifyContent: 'center', marginRight: Spacing.md },
+  swatch: { width: 48, height: 60, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center', marginRight: Spacing.md },
   itemInfo: { flex: 1 },
-  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 },
+  itemName: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3, marginBottom: 3 },
   itemMeta: { fontSize: FontSize.xs, color: Colors.textMuted },
-  verdictRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 2 },
-  verdictBadge: { paddingHorizontal: 6, paddingVertical: 2, backgroundColor: Colors.surfaceLight, marginRight: 4, marginBottom: 4 },
-  verdictRed: { backgroundColor: Colors.error + '20' },
-  verdictAmber: { backgroundColor: Colors.accentWarm + '20' },
-  verdictText: { fontSize: 9, fontWeight: FontWeight.bold, color: Colors.textSecondary, letterSpacing: 0.5 },
+  verdictRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4, gap: 4 },
+  verdictBadge: { paddingHorizontal: 8, paddingVertical: 3, backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full },
+  verdictRed: { backgroundColor: Colors.error + '15' },
+  verdictAmber: { backgroundColor: Colors.textMuted + '15' },
+  verdictText: { fontSize: 9, fontWeight: FontWeight.semibold, color: Colors.textSecondary, letterSpacing: 0.5 },
 
   expanded: { paddingBottom: Spacing.md, paddingLeft: 64 },
   impact: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 18, fontStyle: 'italic', marginBottom: Spacing.sm },
-  subLabel: { fontSize: 10, fontWeight: FontWeight.black, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: Spacing.sm },
+  subLabel: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: Spacing.sm },
   idea: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 18, marginBottom: 4 },
 });

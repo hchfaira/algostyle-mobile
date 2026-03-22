@@ -1,23 +1,17 @@
 /**
  * Style DNA Dashboard — Section cards
- * Quiet luxury — nude/taupe palette, black text, animated accents
+ * Quiet luxury — black, white, nude palette with enhanced visuals
  */
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Animated, { FadeInDown, ZoomIn, SlideInRight } from 'react-native-reanimated';
 
-import { Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import {
   DashSection, ColorOrb, Chip, TipRow, Divider, MetricCell, AttrRow, GroupLabel,
   SECTION_COLORS,
 } from './SharedAtoms';
 import type { ImageConsultingResult, BodyShapeGuidance, FaceShapeGuidance } from '../../types';
-
-const NUDE_BG  = '#FAF7F4';
-const NUDE_BDR = '#E8DDD5';
-const ESPRESSO = '#3B2A1A';
-const BLACK    = '#1A1A1A';
-const GRAY     = '#7A7068';
 
 // ─── 1. Identity Strip ────────────────────────────────────────
 export function IdentityStrip({ result }: { result: ImageConsultingResult }) {
@@ -35,7 +29,7 @@ export function IdentityStrip({ result }: { result: ImageConsultingResult }) {
       <View style={styles.stripRow}>
         <MetricCell value={result.undertone ?? '—'}                             label="Undertone" accent={SECTION_COLORS.skin}    />
         <MetricCell value={result.skin_tone?.replace(/_/g, ' ') ?? '—'}         label="Skin Tone" accent={SECTION_COLORS.identity}/>
-        <MetricCell value={confidence + '%'}                                    label="Confidence"accent={SECTION_COLORS.sizing}  last />
+        <MetricCell value={confidence + '%'}                                    label="Match"     accent={SECTION_COLORS.sizing}  last />
       </View>
     </Animated.View>
   );
@@ -63,39 +57,39 @@ export function ColorSeasonCard({ result }: { result: ImageConsultingResult }) {
           <Text style={[styles.seasonName, { color: SECTION_COLORS.palette }]}>
             {result.color_season}
           </Text>
-          <Text style={styles.seasonSub}>Colour Season</Text>
+          <Text style={styles.seasonSub}>Your Season</Text>
         </Animated.View>
       )}
 
       <GroupLabel text="✦ Best for you" accent={SECTION_COLORS.palette} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orbScroll}>
-        {p.best_colors.slice(0, 10).map((c, i) => <ColorOrb key={i} name={c} size={46} index={i} />)}
+        {p.best_colors.slice(0, 10).map((c, i) => <ColorOrb key={i} name={c} size={48} index={i} />)}
       </ScrollView>
 
       <Divider accent={SECTION_COLORS.palette} />
 
-      <GroupLabel text="Good" accent={SECTION_COLORS.palette + 'AA'} />
+      <GroupLabel text="Good choices" accent={Colors.textSecondary} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orbScroll}>
-        {p.good_colors.slice(0, 8).map((c, i) => <ColorOrb key={i} name={c} size={36} index={i} />)}
+        {p.good_colors.slice(0, 8).map((c, i) => <ColorOrb key={i} name={c} size={38} index={i} />)}
       </ScrollView>
 
       {p.accent_colors.length > 0 && (
         <>
           <Divider accent={SECTION_COLORS.palette} />
-          <GroupLabel text="Accents" accent={SECTION_COLORS.summary} />
+          <GroupLabel text="Statement accents" accent={SECTION_COLORS.summary} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orbScroll}>
-            {p.accent_colors.slice(0, 6).map((c, i) => <ColorOrb key={i} name={c} size={32} index={i} />)}
+            {p.accent_colors.slice(0, 6).map((c, i) => <ColorOrb key={i} name={c} size={34} index={i} />)}
           </ScrollView>
         </>
       )}
 
       {p.colors_to_avoid.length > 0 && (
         <>
-          <Divider accent="#9C6B6B" />
-          <GroupLabel text="✗ Avoid" accent="#9C6B6B" />
+          <Divider accent={Colors.error} />
+          <GroupLabel text="✗ Avoid these" accent={Colors.error} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orbScroll}>
             {p.colors_to_avoid.slice(0, 6).map((c, i) => (
-              <ColorOrb key={i} name={c} size={32} strikethrough index={i} />
+              <ColorOrb key={i} name={c} size={34} strikethrough index={i} />
             ))}
           </ScrollView>
         </>
@@ -126,15 +120,15 @@ export function BodyShapeCard({ guidance }: { guidance: BodyShapeGuidance }) {
       <View style={styles.triCol}>
         {/* Wear */}
         <Animated.View entering={SlideInRight.delay(80).springify()} style={[styles.triCard, { borderTopColor: SECTION_COLORS.body }]}>
-          <Text style={[styles.triHeader, { color: SECTION_COLORS.body }]}>✓ WEAR</Text>
+          <Text style={[styles.triHeader, { color: SECTION_COLORS.body }]}>✓ Wear</Text>
           {guidance.flattering_silhouettes.slice(0, 4).map((s, i) => (
             <Text key={i} style={styles.triItem}>{s.replace(/_/g, ' ')}</Text>
           ))}
         </Animated.View>
 
         {/* Avoid */}
-        <Animated.View entering={SlideInRight.delay(140).springify()} style={[styles.triCard, { borderTopColor: '#9C6B6B' }]}>
-          <Text style={[styles.triHeader, { color: '#9C6B6B' }]}>✗ AVOID</Text>
+        <Animated.View entering={SlideInRight.delay(140).springify()} style={[styles.triCard, { borderTopColor: Colors.error }]}>
+          <Text style={[styles.triHeader, { color: Colors.error }]}>✗ Avoid</Text>
           {guidance.items_to_avoid.slice(0, 4).map((s, i) => (
             <Text key={i} style={styles.triItem}>{s.replace(/_/g, ' ')}</Text>
           ))}
@@ -142,7 +136,7 @@ export function BodyShapeCard({ guidance }: { guidance: BodyShapeGuidance }) {
 
         {/* Try */}
         <Animated.View entering={SlideInRight.delay(200).springify()} style={[styles.triCard, { borderTopColor: SECTION_COLORS.face }]}>
-          <Text style={[styles.triHeader, { color: SECTION_COLORS.face }]}>✦ TRY</Text>
+          <Text style={[styles.triHeader, { color: SECTION_COLORS.face }]}>✦ Try</Text>
           {guidance.good_patterns.slice(0, 4).map((s, i) => (
             <Text key={i} style={styles.triItem}>{s.replace(/_/g, ' ')}</Text>
           ))}
@@ -166,14 +160,14 @@ export function FaceShapeCard({ guidance }: { guidance: FaceShapeGuidance }) {
         </Text>
       </Animated.View>
 
-      <GroupLabel text="Necklines" accent={SECTION_COLORS.face} />
+      <GroupLabel text="Flattering necklines" accent={SECTION_COLORS.face} />
       <View style={styles.chipWrap}>
         {guidance.flattering_necklines.map((s, i) => (
           <Chip key={i} label={s} variant="good" accent={SECTION_COLORS.face} />
         ))}
       </View>
 
-      <GroupLabel text="Collars" accent={SECTION_COLORS.face + 'CC'} />
+      <GroupLabel text="Collar styles" accent={Colors.textSecondary} />
       <View style={styles.chipWrap}>
         {guidance.flattering_collars.map((s, i) => (
           <Chip key={i} label={s} accent={SECTION_COLORS.face} />
@@ -223,14 +217,14 @@ export function SizingCard({ result }: { result: ImageConsultingResult }) {
   if (!result.estimated_top_size && !result.estimated_bottom_size) return null;
   return (
     <DashSection title="Estimated Sizes" accent={SECTION_COLORS.sizing} icon="shirt-outline">
-      <Text style={styles.sizingNote}>Based on your height & body shape analysis</Text>
+      <Text style={styles.sizingNote}>Based on your height & shape analysis</Text>
       <View style={styles.sizeRow}>
         {result.estimated_top_size && (
           <Animated.View
             entering={ZoomIn.delay(60).springify()}
             style={[styles.sizeBadge, { borderColor: SECTION_COLORS.sizing, backgroundColor: SECTION_COLORS.sizing + '10' }]}
           >
-            <Text style={[styles.sizeLabel, { color: SECTION_COLORS.sizing }]}>TOPS</Text>
+            <Text style={[styles.sizeLabel, { color: SECTION_COLORS.sizing }]}>Tops</Text>
             <Text style={[styles.sizeValue, { color: SECTION_COLORS.sizing }]}>{result.estimated_top_size}</Text>
           </Animated.View>
         )}
@@ -239,7 +233,7 @@ export function SizingCard({ result }: { result: ImageConsultingResult }) {
             entering={ZoomIn.delay(120).springify()}
             style={[styles.sizeBadge, { borderColor: SECTION_COLORS.identity, backgroundColor: SECTION_COLORS.identity + '10' }]}
           >
-            <Text style={[styles.sizeLabel, { color: SECTION_COLORS.identity }]}>BOTTOMS</Text>
+            <Text style={[styles.sizeLabel, { color: SECTION_COLORS.identity }]}>Bottoms</Text>
             <Text style={[styles.sizeValue, { color: SECTION_COLORS.identity }]}>{result.estimated_bottom_size}</Text>
           </Animated.View>
         )}
@@ -252,13 +246,11 @@ export function SizingCard({ result }: { result: ImageConsultingResult }) {
 const styles = StyleSheet.create({
   // Identity strip
   stripWrap: {
-    backgroundColor: NUDE_BG,
+    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginTop: Spacing.md,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: NUDE_BDR,
-    ...Shadow.md,
+    ...Shadow.soft,
     overflow: 'hidden',
   },
   stripRow: {
@@ -266,39 +258,36 @@ const styles = StyleSheet.create({
   },
   stripDivider: {
     height: 1,
-    backgroundColor: NUDE_BDR,
+    backgroundColor: Colors.border,
     marginHorizontal: Spacing.md,
+    opacity: 0.5,
   },
   // keep old strip key for any legacy usage
   strip: {
     flexDirection: 'row',
-    backgroundColor: NUDE_BG,
+    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginTop: Spacing.md,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: NUDE_BDR,
-    ...Shadow.md,
+    ...Shadow.soft,
     overflow: 'hidden',
   },
 
   // Summary card
   summaryCard: {
     flexDirection: 'row',
-    backgroundColor: NUDE_BG,
+    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginTop: Spacing.md,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: NUDE_BDR,
     overflow: 'hidden',
-    ...Shadow.sm,
+    ...Shadow.soft,
   },
   summaryAccent: { width: 5 },
   summaryText: {
     flex: 1,
     fontSize: FontSize.md,
-    color: ESPRESSO,
+    color: Colors.textPrimary,
     lineHeight: 22,
     fontWeight: FontWeight.medium,
     padding: Spacing.md,
@@ -313,14 +302,13 @@ const styles = StyleSheet.create({
   },
   seasonName: {
     fontSize: FontSize.xxl,
-    fontWeight: FontWeight.black,
-    letterSpacing: -0.8,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.3,
   },
   seasonSub: {
     fontSize: FontSize.xs,
-    color: GRAY,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+    color: Colors.textSecondary,
+    letterSpacing: 0.3,
     fontWeight: FontWeight.medium,
   },
 
@@ -338,9 +326,8 @@ const styles = StyleSheet.create({
   },
   bigBadgeText: {
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.black,
-    letterSpacing: 0.5,
-    textTransform: 'capitalize',
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.3,
   },
 
   // Three columns
@@ -352,24 +339,24 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderLeftColor: NUDE_BDR,
-    borderRightColor: NUDE_BDR,
-    borderBottomColor: NUDE_BDR,
-    backgroundColor: NUDE_BG,
+    borderLeftColor: Colors.border,
+    borderRightColor: Colors.border,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
     padding: Spacing.sm,
     gap: 4,
+    ...Shadow.soft,
   },
   triHeader: {
     fontSize: 10,
-    fontWeight: FontWeight.black,
-    letterSpacing: 1.5,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 0.5,
     marginBottom: 6,
   },
   triItem: {
     fontSize: FontSize.sm,
-    color: BLACK,
+    color: Colors.textPrimary,
     lineHeight: 18,
-    textTransform: 'capitalize',
   },
 
   // Chips
@@ -378,7 +365,7 @@ const styles = StyleSheet.create({
   // Sizing
   sizingNote: {
     fontSize: FontSize.sm,
-    color: GRAY,
+    color: Colors.textSecondary,
     marginBottom: Spacing.md,
     letterSpacing: 0.1,
   },
@@ -390,16 +377,17 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     alignItems: 'center',
     gap: 4,
+    ...Shadow.soft,
   },
   sizeLabel: {
     fontSize: 10,
-    fontWeight: FontWeight.black,
-    letterSpacing: 2.5,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 0.5,
   },
   sizeValue: {
     fontSize: FontSize.xxxl,
-    fontWeight: FontWeight.black,
-    letterSpacing: -1,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.5,
   },
 });
 

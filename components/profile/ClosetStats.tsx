@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { MOCK_SOCIAL } from './constants';
 
 interface ClosetStatsProps {
@@ -41,7 +41,8 @@ const styles = StyleSheet.create({
   closetCard: {
     flex: 1, alignItems: 'center', paddingVertical: Spacing.md,
     backgroundColor: Colors.surfaceLight, gap: 4,
+    borderRadius: BorderRadius.xl,
   },
-  closetValue: { fontSize: FontSize.lg, fontWeight: FontWeight.black, color: Colors.textPrimary },
-  closetLabel: { fontSize: 10, fontWeight: FontWeight.bold, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+  closetValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  closetLabel: { fontSize: 10, fontWeight: FontWeight.medium, color: Colors.textMuted, letterSpacing: 0.3 },
 });

@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInRight, Layout } from 'react-native-reanimated';
 
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../constants/theme';
 import { TopBar } from '../ui';
 import AnimatedOutfitCard from './AnimatedOutfitCard';
 import type { AgendaEntry } from './constants';
@@ -139,37 +139,37 @@ function InputGroup({ label, placeholder, value, onChange }: { label: string; pl
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: 1 },
+  backText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary, letterSpacing: 0.3 },
   list: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, paddingBottom: 120, gap: Spacing.xl },
 
   // Planning
-  planningSection: { backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.lg, padding: Spacing.lg, borderWidth: 1, borderColor: Colors.border },
+  planningSection: { backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.xl, padding: Spacing.lg, ...Shadow.soft },
   planningHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.lg },
-  planningTitle: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
+  planningTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   inputGroup: { marginBottom: Spacing.lg },
-  inputLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textSecondary, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 1 },
-  input: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.sm, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.sm, color: Colors.textPrimary, height: 44 },
-  scheduleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.accent, borderRadius: BorderRadius.md, paddingVertical: Spacing.md, marginTop: Spacing.lg },
-  scheduleBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1, textTransform: 'uppercase' },
+  inputLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 0.3 },
+  input: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: FontSize.sm, color: Colors.textPrimary, height: 44 },
+  scheduleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.accent, borderRadius: BorderRadius.full, paddingVertical: Spacing.md, marginTop: Spacing.lg },
+  scheduleBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: '#FFF', letterSpacing: 0.3 },
 
   // Agenda
-  agendaSection: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.lg, borderWidth: 1, borderColor: Colors.border },
+  agendaSection: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, padding: Spacing.lg, ...Shadow.soft },
   agendaHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.lg, paddingBottom: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  agendaTitle: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
+  agendaTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   agendaItem: { flexDirection: 'row', gap: Spacing.md, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border, alignItems: 'center' },
-  agendaDateBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.accent + '15', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.sm, minWidth: 100 },
-  agendaDateText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.accent, textTransform: 'uppercase' },
+  agendaDateBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.surfaceLight, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.lg, minWidth: 100, borderWidth: 1, borderColor: Colors.border },
+  agendaDateText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
   agendaContent: { flex: 1, gap: Spacing.sm },
-  agendaOutfitName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  agendaOutfitName: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   agendaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  agendaLocation: { fontSize: FontSize.xs, color: Colors.accentWarm, fontWeight: FontWeight.semibold },
+  agendaLocation: { fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium },
   agendaOccasion: { fontSize: FontSize.xs, color: Colors.textMuted, fontWeight: FontWeight.medium },
   agendaRemoveBtn: { padding: Spacing.sm },
 
   // Generated outfits
   generatedLabel: { marginTop: Spacing.xl },
-  generatedTitle: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
+  generatedTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: -0.2 },
   outfitsContainer: { gap: Spacing.xl, paddingBottom: Spacing.xl },
   cardWrapper: { marginBottom: Spacing.xl },
-  cardSelected: { opacity: 0.8, borderColor: Colors.accent, borderWidth: 2, borderRadius: BorderRadius.md },
+  cardSelected: { opacity: 0.85, borderColor: Colors.accent, borderWidth: 2, borderRadius: BorderRadius.xl },
 });

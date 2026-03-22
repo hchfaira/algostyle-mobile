@@ -1,6 +1,7 @@
 /**
- * OutfitScreen — ASOS-inspired editorial style
- * Matches wardrobe page: white background, near-black typography, theme tokens.
+ * OutfitScreen — Minimalist, quiet-luxury editorial style
+ * - White background, near-black typography, nude accents
+ * - Compact action tiles, refined context cards, improved history & agenda layout
  */
 import React, { useCallback } from 'react';
 import {
@@ -30,7 +31,7 @@ import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../
 import { TopBar } from '../../components/ui';
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Context helpers
+// Context helpers (unchanged)
 // ══════════════════════════════════════════════════════════════════════════════
 
 function conditionToEmoji(code: number): string {
@@ -66,6 +67,7 @@ interface ContextData {
   temp: string; conditionEmoji: string; condition: string; city: string;
   timeEmoji: string; timeLabel: string; occasionHint: string;
   season: string; seasonEmoji: string; seasonTip: string;
+  apiStatus: 'loading' | 'success' | 'error';
 }
 
 function useContextData(): { ctx: ContextData; loading: boolean } {
@@ -74,6 +76,7 @@ function useContextData(): { ctx: ContextData; loading: boolean } {
     temp: '--°', conditionEmoji: '🌡️', condition: 'Loading…', city: '…',
     timeEmoji: '⏰', timeLabel: '…', occasionHint: '…',
     season: s.season, seasonEmoji: s.emoji, seasonTip: s.tip,
+    apiStatus: 'loading',
   });
   const [loading, setLoading] = React.useState(true);
 
@@ -93,21 +96,24 @@ function useContextData(): { ctx: ContextData; loading: boolean } {
           season:         ss.season,
           seasonEmoji:    ss.emoji,
           seasonTip:      ss.tip,
+          apiStatus:      'success',
         });
       })
-      .catch(() => {})
+      .catch(() => {
+        setCtx((prev) => ({ ...prev, apiStatus: 'error' }));
+      })
       .finally(() => setLoading(false));
   }, []);
 
   return { ctx, loading };
 }
 
-// ── Context strip cards ───────────────────────────────────────────────────────
+// ── Refined quiet-luxury tints (softer nude palette) ───────────────────────
 const CTX_TINTS = [
-  { bg: '#FFFAF2', border: '#EEE0C0', text: '#7A5500' },   // amber  – weather
-  { bg: '#F2F6FF', border: '#D0DCFA', text: '#0C3D70' },   // blue   – location
-  { bg: '#FFF2F4', border: '#F0C8D0', text: '#6B0F27' },   // rose   – moment
-  { bg: '#F2FAF4', border: '#BCDEC5', text: '#145220' },   // green  – season
+  { bg: '#FBF8F6', border: '#ECE5DE', text: '#4A443E' },
+  { bg: '#FBFBFB', border: '#EDEBE8', text: '#3F3B38' },
+  { bg: '#FCFAF8', border: '#EDE3D9', text: '#5A524A' },
+  { bg: '#FCFCFB', border: '#EFEEEA', text: '#4E4844' },
 ] as const;
 
 interface CtxCardProps {
@@ -119,13 +125,17 @@ function CtxCard({ tint, emoji, mainValue, labelTop, labelBottom, delay }: CtxCa
   return (
     <Animated.View
       entering={FadeInRight.delay(delay).springify().damping(18)}
-      style={[styles.ctxCard, { backgroundColor: tint.bg, borderColor: tint.border }, Shadow.sm]}
+      style={[styles.ctxCard, { backgroundColor: tint.bg, borderColor: tint.border }]}
     >
-      <Text style={styles.ctxEmoji}>{emoji}</Text>
-      <Text style={[styles.ctxMainValue, { color: tint.text }]} numberOfLines={1} adjustsFontSizeToFit>
-        {mainValue}
-      </Text>
-      <Text style={[styles.ctxLabelTop, { color: tint.text }]} numberOfLines={1}>{labelTop}</Text>
+      <View style={styles.ctxRow}>
+        <Text style={[styles.ctxEmoji, { color: tint.text }]}>{emoji}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.ctxMainValue, { color: tint.text }]} numberOfLines={1} adjustsFontSizeToFit>
+            {mainValue}
+          </Text>
+          <Text style={[styles.ctxLabelTop, { color: tint.text }]} numberOfLines={1}>{labelTop}</Text>
+        </View>
+      </View>
       <Text style={styles.ctxLabelBottom} numberOfLines={1}>{labelBottom}</Text>
     </Animated.View>
   );
@@ -133,25 +143,84 @@ function CtxCard({ tint, emoji, mainValue, labelTop, labelBottom, delay }: CtxCa
 
 function ContextStrip() {
   const { ctx } = useContextData();
+  
   return (
-    <View style={styles.ctxStrip}>
-      <CtxCard tint={CTX_TINTS[0]} delay={0}   emoji={ctx.conditionEmoji} mainValue={ctx.temp}      labelTop={ctx.condition}     labelBottom="Right now" />
-      <CtxCard tint={CTX_TINTS[1]} delay={60}  emoji="📍"                 mainValue={ctx.city}      labelTop="Location"          labelBottom="Your area" />
-      <CtxCard tint={CTX_TINTS[2]} delay={120} emoji={ctx.timeEmoji}      mainValue={ctx.timeLabel}  labelTop={ctx.occasionHint}  labelBottom="Vibe"      />
-      <CtxCard tint={CTX_TINTS[3]} delay={180} emoji={ctx.seasonEmoji}    mainValue={ctx.season}     labelTop={ctx.seasonTip}     labelBottom="Season"    />
+    <View>
+      {ctx.apiStatus !== 'loading' && (
+        <Animated.View 
+          entering={FadeIn.duration(240)}
+          style={[
+            styles.apiStatusBanner,
+            ctx.apiStatus === 'success' ? styles.apiStatusSuccess : styles.apiStatusError
+          ]}
+        >
+          <Ionicons 
+            name={ctx.apiStatus === 'success' ? 'checkmark-circle' : 'alert-circle'} 
+            size={14} 
+            color={ctx.apiStatus === 'success' ? '#2E7D32' : '#C62828'} 
+          />
+          <Text style={[
+            styles.apiStatusText,
+            { color: ctx.apiStatus === 'success' ? '#2E7D32' : '#C62828' }
+          ]}>
+            {ctx.apiStatus === 'success' 
+              ? 'Context loaded • Personalised suggestions'
+              : 'Context unavailable • Using general suggestions'
+            }
+          </Text>
+        </Animated.View>
+      )}
+      <View style={styles.ctxStrip}>
+        <CtxCard tint={CTX_TINTS[0]} delay={0}   emoji={ctx.conditionEmoji} mainValue={ctx.temp}      labelTop={ctx.condition}     labelBottom="Right now" />
+        <CtxCard tint={CTX_TINTS[1]} delay={60}  emoji="📍"                 mainValue={ctx.city}      labelTop="Location"          labelBottom="Your area" />
+        <CtxCard tint={CTX_TINTS[2]} delay={120} emoji={ctx.timeEmoji}      mainValue={ctx.timeLabel}  labelTop={ctx.occasionHint}  labelBottom="Vibe"      />
+        <CtxCard tint={CTX_TINTS[3]} delay={180} emoji={ctx.seasonEmoji}    mainValue={ctx.season}     labelTop={ctx.seasonTip}     labelBottom="Season"    />
+      </View>
     </View>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Action tiles
+// Action tiles — compact horizontal cards for faster scanning
 // ══════════════════════════════════════════════════════════════════════════════
 
 const ACTION_CARDS = [
-  { key: 'score'  as const, title: 'Score My Look',    subtitle: 'AI rating + tips',          emoji: '✨', borderColor: '#E8D9B0' },
-  { key: 'build'  as const, title: 'Build Outfit',     subtitle: 'Pick from wardrobe',        emoji: '🧩', borderColor: '#DCDCDC' },
-  { key: 'ai'     as const, title: 'AI Stylist',       subtitle: 'Occasion → complete look',  emoji: '🌿', borderColor: '#BFDCC9' },
-  { key: 'prompt' as const, title: 'Describe a Vibe',  subtitle: 'Mood → outfit',             emoji: '💬', borderColor: '#C0CDE8' },
+  { 
+    key: 'build' as const, 
+    title: 'Build Outfit', 
+    subtitle: 'Choose from wardrobe', 
+    icon: 'shirt-outline' as const,
+    iconColor: '#FF6B6B',      // Coral red
+    bgColor: 'rgba(255, 107, 107, 0.08)',
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+  },
+  { 
+    key: 'ai' as const, 
+    title: 'AI Stylist', 
+    subtitle: 'Complete looks instantly', 
+    icon: 'sparkles-outline' as const,
+    iconColor: '#9B59B6',      // Purple
+    bgColor: 'rgba(155, 89, 182, 0.08)',
+    borderColor: 'rgba(155, 89, 182, 0.2)',
+  },
+  { 
+    key: 'score' as const, 
+    title: 'Score My Look', 
+    subtitle: 'AI rating & tips', 
+    icon: 'star-outline' as const,
+    iconColor: '#F39C12',      // Orange gold
+    bgColor: 'rgba(243, 156, 18, 0.08)',
+    borderColor: 'rgba(243, 156, 18, 0.2)',
+  },
+  { 
+    key: 'prompt' as const, 
+    title: 'Describe a Vibe', 
+    subtitle: 'From mood to outfit', 
+    icon: 'chatbubble-ellipses-outline' as const,
+    iconColor: '#3498DB',      // Bright blue
+    bgColor: 'rgba(52, 152, 219, 0.08)',
+    borderColor: 'rgba(52, 152, 219, 0.2)',
+  },
 ] as const;
 
 type ActionKey = typeof ACTION_CARDS[number]['key'];
@@ -162,24 +231,27 @@ function ActionTile({ card, onPress, tileW, delay }: TileProps) {
   return (
     <Animated.View entering={FadeInUp.delay(delay).springify().damping(18)} style={{ width: tileW }}>
       <TouchableOpacity
-        style={[styles.tile, { borderColor: card.borderColor }]}
+        style={[styles.tile, { backgroundColor: card.bgColor, borderColor: card.borderColor }]}
         onPress={onPress}
-        activeOpacity={0.8}
+        activeOpacity={0.78}
       >
-        <Text style={styles.tileEmoji}>{card.emoji}</Text>
-        <Text style={styles.tileTitle}>{card.title}</Text>
-        <Text style={styles.tileSubtitle}>{card.subtitle}</Text>
-        <View style={styles.tileCTA}>
-          <Text style={styles.tileCTAText}>Open</Text>
-          <Ionicons name="arrow-forward" size={10} color={Colors.textPrimary} />
+        <View style={[styles.tileLeft, { backgroundColor: 'transparent' }]}>
+          <View style={[styles.tileIconWrap, { backgroundColor: 'transparent' }]}>
+            <Ionicons name={card.icon} size={28} color={card.iconColor} />
+          </View>
+          <View style={styles.tileText}>
+            <Text style={styles.tileTitle}>{card.title}</Text>
+            <Text style={styles.tileSubtitle}>{card.subtitle}</Text>
+          </View>
         </View>
+        <Ionicons name="chevron-forward" size={18} color={card.iconColor} style={{ opacity: 0.6 }} />
       </TouchableOpacity>
     </Animated.View>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// StatPill
+// StatPill — lighter, minimal
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface StatPillProps { icon: React.ComponentProps<typeof Ionicons>['name']; value: number | string; label: string; onPress?: () => void; }
@@ -187,20 +259,22 @@ interface StatPillProps { icon: React.ComponentProps<typeof Ionicons>['name']; v
 function StatPill({ icon, value, label, onPress }: StatPillProps) {
   return (
     <TouchableOpacity
-      style={[styles.statPill, Shadow.sm]}
+      style={[styles.statPill, onPress ? Shadow.sm : undefined]}
       onPress={onPress}
-      activeOpacity={onPress ? 0.75 : 1}
+      activeOpacity={onPress ? 0.78 : 1}
       disabled={!onPress}
     >
-      <Ionicons name={icon} size={18} color={Colors.textSecondary} />
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Ionicons name={icon} size={16} color="#8A857E" />
+      <View style={{ marginLeft: 8 }}>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// OutfitScreen
+// OutfitScreen — layout adjustments, clearer hierarchy
 // ══════════════════════════════════════════════════════════════════════════════
 
 export default function OutfitScreen() {
@@ -210,10 +284,11 @@ export default function OutfitScreen() {
   const [showScore,  setShowScore]  = React.useState(false);
   const [showPrompt, setShowPrompt] = React.useState(false);
 
-  // Responsive tile width: 2 columns with gap, max 220px each
+  // Responsive tile width: two columns on wide screens, single column on narrow
   const PAD    = Spacing.md * 2;   // 32
   const GAP    = Spacing.sm;       // 8
-  const tileW  = Math.min((W - PAD - GAP) / 2, 220);
+  const col    = W > 680 ? 2 : 1;
+  const tileW  = Math.min((W - PAD - GAP * (col - 1)) / col, 420);
 
   const handleTilePress = useCallback((key: ActionKey) => {
     if (key === 'score')  setShowScore(true);
@@ -248,39 +323,40 @@ export default function OutfitScreen() {
   return (
     <View style={styles.container}>
 
-      {/* ── TopBar — matches wardrobe ──────────────────────────────────────── */}
+      {/* TopBar — keeps existing behavior but looks cleaner */}
       <TopBar title="Your Style" />
 
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingHorizontal: Spacing.md }]}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* ── Hero row: stat pills + Plan Week ─────────────────────────────── */}
+        {/* Hero row */}
         <Animated.View entering={FadeInUp.delay(40)} style={styles.heroRow}>
-          <StatPill icon="albums-outline"  value={itemCount}      label="items" />
-          <StatPill icon="calendar-outline" value={scheduledCount} label="scheduled" onPress={() => planner.setShowOutfitHistory(true)} />
+          <View style={styles.statsWrap}>
+            <StatPill icon="albums-outline"  value={itemCount}      label="items" />
+            <StatPill icon="calendar-outline" value={scheduledCount} label="scheduled" onPress={() => planner.setShowOutfitHistory(true)} />
+          </View>
           <TouchableOpacity
             style={styles.planWeekBtn}
             onPress={() => planner.setShowWeekPlanner(true)}
             activeOpacity={0.75}
           >
-            <Ionicons name="calendar-outline" size={14} color={Colors.textOnAccent} />
-            <Text style={styles.planWeekText}>Plan Week</Text>
+            <Ionicons name="calendar" size={14} color="#FFFFFF" />
+            <Text style={styles.planWeekText}>Plan week</Text>
           </TouchableOpacity>
         </Animated.View>
 
-        {/* ── Right Now ────────────────────────────────────────────────────── */}
+        {/* Right Now */}
         <Animated.View entering={FadeInUp.delay(80)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Right Now</Text>
+          <Text style={styles.sectionTitle}>Right now</Text>
           <ContextStrip />
         </Animated.View>
 
-        {/* ── Recent Outfits ────────────────────────────────────────────────── */}
+        {/* Recent Outfits */}
         <Animated.View entering={FadeInUp.delay(160)} style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Outfits</Text>
-            <TouchableOpacity onPress={() => planner.setShowOutfitHistory(true)} hitSlop={{ top: 8, bottom: 8, left: 12, right: 4 }}>
+            <Text style={styles.sectionTitle}>Recent outfits</Text>
+            <TouchableOpacity onPress={() => planner.setShowOutfitHistory(true)} hitSlop={{top:8,bottom:8,left:12,right:4}}>
               <Text style={styles.sectionLink}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -290,7 +366,7 @@ export default function OutfitScreen() {
               <Text style={styles.historyEmptyEmoji}>👗</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.historyEmptyTitle}>Nothing scheduled yet</Text>
-                <Text style={styles.historyEmptySubtitle}>Use a tool below to build your first look</Text>
+                <Text style={styles.historyEmptySubtitle}>Create a look with the tools below</Text>
               </View>
             </View>
           ) : (
@@ -300,13 +376,15 @@ export default function OutfitScreen() {
                   key={entry.id}
                   style={[styles.historyChip, Shadow.sm]}
                   onPress={() => planner.openOutfitDetail(entry)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.78}
                 >
-                  <View style={[styles.historyColorBar, { backgroundColor: entry.color }]} />
+                  <View style={[styles.historyColorBar, { backgroundColor: entry.color || '#D0C6B6' }]} />
                   <View style={styles.historyChipContent}>
                     <Text style={styles.historyChipName} numberOfLines={1}>{entry.outfitName}</Text>
-                    <Text style={styles.historyChipDate}>{entry.date}</Text>
-                    <Text style={styles.historyChipOccasion}>{entry.occasion}</Text>
+                    <View style={styles.historyMetaRow}>
+                      <Text style={styles.historyChipDate}>{entry.date}</Text>
+                      <Text style={styles.historyChipOccasion}>{entry.occasion}</Text>
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -314,36 +392,39 @@ export default function OutfitScreen() {
           )}
         </Animated.View>
 
-        {/* ── Style Tools ──────────────────────────────────────────────────── */}
+        {/* Style Tools */}
         <Animated.View entering={FadeInUp.delay(220)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Style Tools</Text>
+          <Text style={styles.sectionTitle}>Style tools</Text>
           <View style={[styles.grid, { gap: GAP }]}>
             {ACTION_CARDS.map((card, i) => (
               <ActionTile
                 key={card.key}
                 card={card}
                 tileW={tileW}
-                delay={240 + i * 50}
+                delay={240 + i * 40}
                 onPress={() => handleTilePress(card.key)}
               />
             ))}
           </View>
         </Animated.View>
 
-        {/* ── Agenda ────────────────────────────────────────────────────────── */}
+        {/* Agenda */}
         <Animated.View entering={FadeInUp.delay(380)} style={styles.section}>
-          <AgendaSection
-            entries={planner.agendaEntries}
-            selectedId={planner.selectedAgendaId}
-            onSelect={(id) => planner.setSelectedAgendaId(id)}
-            onRemove={planner.removeAgendaEntry}
-            onOpenWeekPlanner={() => planner.setShowWeekPlanner(true)}
-          />
+          <Text style={[styles.sectionTitle, { marginBottom: 8 }]}>Agenda</Text>
+          <View style={styles.agendaWrap}>
+            <AgendaSection
+              entries={planner.agendaEntries}
+              selectedId={planner.selectedAgendaId}
+              onSelect={(id) => planner.setSelectedAgendaId(id)}
+              onRemove={planner.removeAgendaEntry}
+              onOpenWeekPlanner={() => planner.setShowWeekPlanner(true)}
+            />
+          </View>
         </Animated.View>
 
       </ScrollView>
 
-      {/* ── Modals ──────────────────────────────────────────────────────────── */}
+      {/* Modals (unchanged behavior) */}
       <ScoreOutfitModal
         isVisible={showScore}
         onClose={() => setShowScore(false)}
@@ -422,67 +503,77 @@ export default function OutfitScreen() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Styles — aligned with wardrobe theme tokens
+// Styles — tuned to minimal, quiet-luxury look
 // ══════════════════════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
 
   container: {
     flex:            1,
-    backgroundColor: Colors.background,  // pure white — matches wardrobe
+    backgroundColor: '#FFFFFF',  // clean white canvas
   },
 
   scroll: {
     paddingTop:    Spacing.md,
-    paddingBottom: 120,
+    paddingBottom: 140,
     gap:           Spacing.lg,
   },
 
-  // ── Hero row ─────────────────────────────────────────────────────────────
+  // Hero row
   heroRow: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.sm,
+  },
+  statsWrap: {
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           Spacing.sm,
+    gap: 10,
   },
   statPill: {
     flexDirection:     'row',
     alignItems:        'center',
-    gap:               6,
-    paddingVertical:   10,
-    paddingHorizontal: 14,
-    backgroundColor:   Colors.surface,
+    paddingVertical:   8,
+    paddingHorizontal: 12,
+    backgroundColor:   '#FFF',
     borderRadius:      BorderRadius.full,
     borderWidth:       1,
-    borderColor:       Colors.border,
+    borderColor:       '#F1ECE8',
+    minWidth:          98,
   },
   statValue: {
     fontSize:   FontSize.md,
-    fontWeight: FontWeight.black,
-    color:      Colors.textPrimary,
+    fontWeight: FontWeight.semibold,
+    color:      '#121212',
   },
   statLabel: {
     fontSize:   FontSize.xs,
-    color:      Colors.textMuted,
+    color:      '#8A857E',
     fontWeight: FontWeight.regular,
+    textTransform: 'lowercase',
   },
   planWeekBtn: {
     flexDirection:     'row',
     alignItems:        'center',
-    gap:               5,
+    gap:               8,
     marginLeft:        'auto',
     paddingVertical:   10,
     paddingHorizontal: 14,
     borderRadius:      BorderRadius.full,
-    backgroundColor:   Colors.accent,
+    backgroundColor:   '#111111',
   },
   planWeekText: {
     fontSize:   FontSize.xs,
-    fontWeight: FontWeight.bold,
-    color:      Colors.textOnAccent,
+    fontWeight: FontWeight.semibold,
+    color:      '#FFFFFF',
+    letterSpacing: 0.2,
+    textTransform: 'lowercase',
   },
 
-  // ── Section ──────────────────────────────────────────────────────────────
+  // Section
   section: {
     gap: Spacing.sm,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F0ED',
   },
   sectionHeader: {
     flexDirection:  'row',
@@ -490,36 +581,40 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionTitle: {
-    fontSize:      FontSize.lg,
-    fontWeight:    FontWeight.bold,
-    color:         Colors.textPrimary,
-    letterSpacing: -0.3,
+    fontSize:      FontSize.md,
+    fontWeight:    FontWeight.semibold,
+    color:         '#111111',
+    letterSpacing: -0.2,
+    textTransform: 'capitalize',
   },
   sectionLink: {
-    fontSize:   FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color:      Colors.textSecondary,
-    textDecorationLine: 'underline',
+    fontSize:   FontSize.xs,
+    fontWeight: FontWeight.medium,
+    color:      '#8A857E',
   },
 
-  // ── Context strip ────────────────────────────────────────────────────────
+  // Context strip
   ctxStrip: {
     flexDirection: 'row',
     gap:           Spacing.sm,
   },
   ctxCard: {
     flex:              1,
-    paddingVertical:   12,
-    paddingHorizontal: 10,
-    borderRadius:      BorderRadius.lg,
+    paddingVertical:   10,
+    paddingHorizontal: 12,
+    borderRadius:      BorderRadius.xl,
     borderWidth:       1,
-    gap:               2,
-    minWidth:          0,
+    minWidth:          88,
+    justifyContent:    'center',
+  },
+  ctxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   ctxEmoji: {
-    fontSize:     15,
-    marginBottom: 3,
-    lineHeight:   20,
+    fontSize:     18,
+    lineHeight:   22,
   },
   ctxMainValue: {
     fontSize:      FontSize.md,
@@ -528,56 +623,86 @@ const styles = StyleSheet.create({
     lineHeight:    20,
   },
   ctxLabelTop: {
-    fontSize:   10,
-    fontWeight: FontWeight.semibold,
-    marginTop:  1,
+    fontSize:   11,
+    fontWeight: FontWeight.medium,
+    marginTop:  2,
+    color: '#6F675F',
   },
   ctxLabelBottom: {
-    fontSize:   9,
+    fontSize:   10,
     fontWeight: FontWeight.regular,
-    color:      Colors.textMuted,
+    color:      '#8A857E',
+    marginTop:  6,
   },
 
-  // ── History strip ────────────────────────────────────────────────────────
+  // API status
+  apiStatusBanner: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius:    BorderRadius.md,
+    marginBottom:    Spacing.sm,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#F2F0EE',
+  },
+  apiStatusSuccess: {},
+  apiStatusError: {},
+  apiStatusText: {
+    fontSize:   FontSize.xs,
+    fontWeight: FontWeight.medium,
+    flex:       1,
+    color: '#6F675F',
+  },
+
+  // History strip
   historyStrip: {
-    gap:         Spacing.sm,
-    paddingBottom: 4,
-    paddingRight:  Spacing.md,
+    gap:            Spacing.sm,
+    paddingBottom:  4,
+    paddingRight:   Spacing.md,
   },
   historyChip: {
     flexDirection:   'row',
-    width:           160,
-    backgroundColor: Colors.surface,
-    borderRadius:    BorderRadius.lg,
+    width:           220,
+    backgroundColor: '#FFFFFF',
+    borderRadius:    BorderRadius.xl,
     borderWidth:     1,
-    borderColor:     Colors.border,
+    borderColor:     '#F1ECE8',
     overflow:        'hidden',
+    alignItems:      'center',
   },
   historyColorBar: {
-    width:     3,
-    alignSelf: 'stretch',
+    width:        6,
+    alignSelf:    'stretch',
   },
   historyChipContent: {
     flex:              1,
     paddingVertical:   12,
-    paddingHorizontal: 10,
-    gap:               2,
+    paddingHorizontal: 12,
+    gap:               6,
   },
   historyChipName: {
     fontSize:      FontSize.sm,
-    fontWeight:    FontWeight.bold,
-    color:         Colors.textPrimary,
+    fontWeight:    FontWeight.semibold,
+    color:         '#111111',
     letterSpacing: -0.1,
+  },
+  historyMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
   },
   historyChipDate: {
     fontSize:   11,
-    color:      Colors.textSecondary,
+    color:      '#8A857E',
     fontWeight: FontWeight.medium,
-    marginTop:  2,
   },
   historyChipOccasion: {
-    fontSize:      10,
-    color:         Colors.textMuted,
+    fontSize:      11,
+    color:         '#B7B0A7',
     textTransform: 'capitalize',
     fontWeight:    FontWeight.regular,
   },
@@ -585,11 +710,11 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap:             Spacing.md,
-    padding:         Spacing.md,
-    backgroundColor: Colors.surfaceLight,
-    borderRadius:    BorderRadius.lg,
+    padding:         Spacing.lg,
+    backgroundColor: '#FFF',
+    borderRadius:    BorderRadius.xl,
     borderWidth:     1,
-    borderColor:     Colors.border,
+    borderColor:     '#F1ECE8',
   },
   historyEmptyEmoji: {
     fontSize: 28,
@@ -597,67 +722,81 @@ const styles = StyleSheet.create({
   historyEmptyTitle: {
     fontSize:   FontSize.sm,
     fontWeight: FontWeight.semibold,
-    color:      Colors.textPrimary,
+    color:      '#111111',
   },
   historyEmptySubtitle: {
     fontSize:   FontSize.xs,
-    color:      Colors.textMuted,
+    color:      '#8A857E',
     marginTop:  2,
     lineHeight: 16,
   },
 
-  // ── 2×2 grid ─────────────────────────────────────────────────────────────
+  // Grid & tiles
   grid: {
     flexDirection: 'row',
     flexWrap:      'wrap',
   },
-
-  // ── Action tile ───────────────────────────────────────────────────────────
   tile: {
-    flex:            1,         // fills tileW passed via width style on Animated.View
-    aspectRatio:     1,
+    height:          96,
     borderRadius:    BorderRadius.xl,
-    padding:         Spacing.md,
-    backgroundColor: Colors.surface,
-    borderWidth:     1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
     justifyContent:  'space-between',
-    ...Shadow.sm,
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#F2F0ED',
   },
-  tileEmoji: {
-    fontSize: 24,
-    marginBottom: Spacing.xs,
+  tileLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  tileIconWrap: {
+    width:           44,
+    height:          44,
+    borderRadius:    BorderRadius.md,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  tileText: {
+    flex: 1,
   },
   tileTitle: {
     fontSize:      FontSize.md,
-    fontWeight:    FontWeight.bold,
-    color:         Colors.textPrimary,
-    letterSpacing: -0.2,
+    fontWeight:    FontWeight.semibold,
+    color:         '#111111',
+    marginBottom:  2,
   },
   tileSubtitle: {
     fontSize:   FontSize.xs,
-    lineHeight: 15,
-    color:      Colors.textMuted,
-    fontWeight: FontWeight.regular,
-    marginTop:  3,
-    flexShrink: 1,
+    lineHeight: 16,
+    color:      '#8A857E',
   },
   tileCTA: {
     flexDirection:     'row',
     alignItems:        'center',
-    gap:               3,
-    alignSelf:         'flex-start',
-    paddingVertical:   4,
-    paddingHorizontal: 10,
+    gap:               4,
+    paddingVertical:   6,
+    paddingHorizontal: 12,
     borderRadius:      BorderRadius.full,
-    backgroundColor:   Colors.surfaceLight,
-    borderWidth:       1,
-    borderColor:       Colors.border,
-    marginTop:         Spacing.sm,
   },
   tileCTAText: {
-    fontSize:      11,
-    fontWeight:    FontWeight.bold,
-    color:         Colors.textPrimary,
-    letterSpacing: 0.3,
+    fontSize:      FontSize.xs,
+    fontWeight:    FontWeight.semibold,
+    color:         '#FFFFFF',
+    letterSpacing: 0.2,
   },
+
+  // Agenda
+  agendaWrap: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: '#F3F0ED',
+    padding: Spacing.sm,
+  },
+
 });

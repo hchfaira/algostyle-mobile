@@ -54,10 +54,10 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 
 const barStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  label: { width: 100, fontSize: FontSize.xs, color: Colors.textMuted, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.3 },
-  track: { flex: 1, height: 4, backgroundColor: Colors.border, overflow: 'hidden' },
-  fill: { height: '100%' },
-  val: { width: 28, fontSize: FontSize.xs, fontWeight: FontWeight.black, textAlign: 'right' },
+  label: { width: 100, fontSize: FontSize.xs, color: Colors.textSecondary, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.4 },
+  track: { flex: 1, height: 5, backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: BorderRadius.full },
+  val: { width: 28, fontSize: FontSize.xs, fontWeight: FontWeight.bold, textAlign: 'right' },
 });
 
 export default function GarmentDetailModal({
@@ -209,52 +209,52 @@ export default function GarmentDetailModal({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: 36,
     maxHeight: '88%',
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    borderTopLeftRadius: BorderRadius.xl + 4,
+    borderTopRightRadius: BorderRadius.xl + 4,
   },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
+  handle: { width: 40, height: 4, borderRadius: BorderRadius.full, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: Spacing.lg },
 
   hero: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginBottom: Spacing.md },
-  swatch: { width: 72, height: 88, alignItems: 'center', justifyContent: 'center' },
-  heroInfo: { flex: 1, gap: 4 },
-  heroName: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary, textTransform: 'uppercase', letterSpacing: 0.5 },
-  heroMeta: { fontSize: FontSize.xs, color: Colors.textMuted, textTransform: 'capitalize' },
-  heroTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
-  seasonChip: { paddingHorizontal: 6, paddingVertical: 2, backgroundColor: Colors.surfaceLight, borderWidth: 1, borderColor: Colors.border },
-  seasonChipText: { fontSize: 9, color: Colors.textSecondary, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 0.5 },
+  swatch: { width: 76, height: 92, borderRadius: BorderRadius.lg, alignItems: 'center', justifyContent: 'center' },
+  heroInfo: { flex: 1, gap: 5 },
+  heroName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: 0.3 },
+  heroMeta: { fontSize: FontSize.xs, color: Colors.textMuted, textTransform: 'capitalize', lineHeight: 16 },
+  heroTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },
+  seasonChip: { paddingHorizontal: 10, paddingVertical: 3, backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border },
+  seasonChipText: { fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.semibold, textTransform: 'uppercase', letterSpacing: 0.5 },
   heroActions: { gap: Spacing.sm },
-  actionBtn: { width: 36, height: 36, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  actionBtn: { width: 38, height: 38, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surfaceLight },
 
-  divider: { height: 1, backgroundColor: Colors.border, marginBottom: Spacing.md },
-  sectionTitle: { fontSize: FontSize.xs, fontWeight: FontWeight.black, color: Colors.textPrimary, letterSpacing: 2, marginBottom: Spacing.md },
+  divider: { height: 1, backgroundColor: Colors.border, marginBottom: Spacing.md, borderRadius: 1 },
+  sectionTitle: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textSecondary, letterSpacing: 2, marginBottom: Spacing.md },
 
-  loadingWrap: { paddingVertical: 32, alignItems: 'center', gap: Spacing.sm },
+  loadingWrap: { paddingVertical: 36, alignItems: 'center', gap: Spacing.sm },
   loadingText: { fontSize: FontSize.sm, color: Colors.textMuted },
 
-  analysisScroll: { maxHeight: 300 },
-  verdictBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderLeftWidth: 3, paddingLeft: Spacing.md, paddingVertical: 10, backgroundColor: Colors.surfaceLight, marginBottom: Spacing.md },
-  verdictDot: { width: 8, height: 8, borderRadius: 4 },
-  verdictLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.black, textTransform: 'uppercase', letterSpacing: 1 },
+  analysisScroll: { maxHeight: 320 },
+  verdictBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderLeftWidth: 3, borderRadius: BorderRadius.md, paddingLeft: Spacing.md, paddingVertical: 12, backgroundColor: Colors.surfaceLight, marginBottom: Spacing.md },
+  verdictDot: { width: 10, height: 10, borderRadius: BorderRadius.full },
+  verdictLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, textTransform: 'uppercase', letterSpacing: 1 },
   verdictSub: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2 },
 
-  barsWrap: { gap: 10, marginBottom: Spacing.md },
+  barsWrap: { gap: 12, marginBottom: Spacing.md },
 
-  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.border, paddingVertical: Spacing.md, marginBottom: Spacing.md },
-  statItem: { flex: 1, alignItems: 'center', gap: 4 },
-  statVal: { fontSize: FontSize.md, fontWeight: FontWeight.black, color: Colors.textPrimary },
-  statLabel: { fontSize: 9, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  statsRow: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.border, paddingVertical: Spacing.md + 2, marginBottom: Spacing.md, borderRadius: BorderRadius.sm },
+  statItem: { flex: 1, alignItems: 'center', gap: 5 },
+  statVal: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  statLabel: { fontSize: 10, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.md },
-  tag: { paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.border },
-  tagText: { fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.medium, textTransform: 'uppercase', letterSpacing: 0.5 },
+  tag: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surfaceLight },
+  tagText: { fontSize: 10, color: Colors.textSecondary, fontWeight: FontWeight.semibold, textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  closeBtn: { backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: Spacing.md },
-  closeBtnText: { color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.black, letterSpacing: 2 },
+  closeBtn: { backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center', paddingVertical: 15, marginTop: Spacing.md, borderRadius: BorderRadius.full },
+  closeBtnText: { color: '#FFF', fontSize: FontSize.sm, fontWeight: FontWeight.bold, letterSpacing: 1.5 },
 });

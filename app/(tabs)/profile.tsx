@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { MOCK_SOCIAL } from '../../components/profile/constants';
 import {
   ProfileHeader,
@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
   signOutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: Spacing.sm, width: '100%', height: 48, backgroundColor: Colors.accent,
+    borderRadius: BorderRadius.full,
   },
-  signOutText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: '#FFF', letterSpacing: 1.5 },
+  signOutText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: '#FFF', letterSpacing: 0.5 },
   version: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: Spacing.md },
 });

@@ -38,9 +38,10 @@ interface Props {
   variant: 'primary' | 'secondary';
   index?: number;
   isActive?: boolean;
+  isEmoji?: boolean;  // true if icon is an emoji, false if Ionicons name
 }
 
-export default function ActionCard({ icon, title, subtitle, buttonLabel, accentColor, onPress, index = 0, isActive = false }: Props) {
+export default function ActionCard({ icon, title, subtitle, buttonLabel, accentColor, onPress, index = 0, isActive = false, isEmoji = false }: Props) {
   const scale    = useSharedValue(1);
   const cardAnim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
@@ -89,7 +90,11 @@ export default function ActionCard({ icon, title, subtitle, buttonLabel, accentC
         <View style={styles.content}>
           {/* Icon + title row */}
           <View style={styles.titleRow}>
-            <Ionicons name={icon as any} size={16} color={Colors.textPrimary} />
+            {isEmoji ? (
+              <Text style={styles.emojiIcon}>{icon}</Text>
+            ) : (
+              <Ionicons name={icon as any} size={16} color={Colors.textPrimary} />
+            )}
             <Text style={styles.title} numberOfLines={1}>
               {title.toUpperCase()}
             </Text>
@@ -146,6 +151,10 @@ const styles = StyleSheet.create({
     alignItems:    'center',
     gap:           6,
     marginBottom:  2,
+  },
+  emojiIcon: {
+    fontSize: 18,
+    lineHeight: 18,
   },
   title: {
     fontSize:      FontSize.xs,
