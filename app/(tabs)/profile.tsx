@@ -1,12 +1,7 @@
-/**
- * Profile Tab — ASOS-style account screen with social media layer
- * Thin orchestrator — all logic in useProfile, UI in components/profile
- */
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
-import { MOCK_SOCIAL } from '../../components/profile/constants';
 import {
   ProfileHeader,
   ClosetStats,
@@ -24,12 +19,12 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-      {/* ── Hero header ── */}
       <ProfileHeader
         displayName={p.displayName}
         handle={p.handle}
         bio={p.bio}
-        verificationBadge={MOCK_SOCIAL.verification_badge}
+        outfitsShared={p.outfitsShared}
+        likesReceived={p.likesReceived}
         pendingRequestsCount={p.pendingRequests.length}
         onEditBio={p.openEditBio}
         onFollowersPress={() => p.setShowFollowSheet('followers')}
@@ -37,19 +32,14 @@ export default function ProfileScreen() {
         onRequestsPress={() => p.setShowRequests(true)}
       />
 
-      {/* ── Wardrobe & Outfits mini-stats ── */}
-      <ClosetStats wardrobeCount={p.wardrobe.length} outfitsCount={p.outfits.length} />
+      <ClosetStats wardrobeCount={p.wardrobeCount} outfitsCount={p.outfitsCount} likesReceived={p.likesReceived} />
 
-      {/* ── Suggested people ── */}
       <SuggestedPeople following={p.following} onToggleFollow={p.toggleFollow} />
 
-      {/* ── Settings menu ── */}
       <SettingsMenu menuItems={p.menuItems} />
 
-      {/* ── Style DNA expand ── */}
       {p.showStyleDNA && p.profile && <StyleDNA profile={p.profile} />}
 
-      {/* ── Sign Out ── */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.signOutBtn} onPress={p.handleLogout} activeOpacity={0.8}>
           <Ionicons name="log-out-outline" size={18} color="#FFF" />
@@ -58,7 +48,6 @@ export default function ProfileScreen() {
         <Text style={styles.version}>AlgoStyle v1.0.0</Text>
       </View>
 
-      {/* ── Modals ── */}
       <FollowRequestsSheet
         visible={p.showRequests}
         pendingRequests={p.pendingRequests}

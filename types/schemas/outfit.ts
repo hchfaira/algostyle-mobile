@@ -48,6 +48,10 @@ export interface CreateCustomOutfitRequest {
   date?: string;
   location?: string;
   styleMood?: string;
+  source?: string;          // 'build' | 'ai' | 'score' | 'prompt'
+  aiGrade?: string;
+  aiScore?: number;
+  explanationBrief?: string;
 }
 
 export interface CustomOutfitResponse {

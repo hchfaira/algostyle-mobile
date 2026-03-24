@@ -346,7 +346,16 @@ class ApiService {
   ): Promise<CustomOutfitResponse> {
     return this.request(`/api/v1/outfits/create?user_id=${userId}`, {
       method: 'POST',
-      body: JSON.stringify(outfitData),
+      body: JSON.stringify({
+        name: outfitData.name,
+        description: outfitData.description,
+        garment_ids: outfitData.garmentIds,
+        is_public: outfitData.isPublic ?? false,
+        source: outfitData.source ?? 'build',
+        ai_grade: outfitData.aiGrade,
+        ai_score: outfitData.aiScore,
+        explanation_brief: outfitData.explanationBrief,
+      }),
     });
   }
 
@@ -369,6 +378,15 @@ class ApiService {
     outfitId: string
   ): Promise<{ success: boolean; share_code: string; share_url: string; outfit_name: string }> {
     return this.request(`/api/v1/outfits/${outfitId}/share?user_id=${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async publishOutfit(
+    userId: string,
+    outfitId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(`/api/v1/outfits/${outfitId}/publish?user_id=${userId}`, {
       method: 'POST',
     });
   }

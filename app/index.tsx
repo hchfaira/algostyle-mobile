@@ -19,7 +19,7 @@ export default function WelcomeScreen() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(tabs)/wardrobe');
+      router.replace('/(tabs)/people');
     }
   }, [isAuthenticated]);
 

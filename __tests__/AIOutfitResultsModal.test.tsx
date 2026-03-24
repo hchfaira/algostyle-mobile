@@ -78,7 +78,7 @@ const defaultProps = {
   isLoading: false,
   onClose: noop,
   onWearOutfit: noop,
-  onShareOutfit: noop,
+  onShareOutfit: async () => {},
   onRegeneratePress: noop,
 };
 

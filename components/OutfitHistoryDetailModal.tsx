@@ -32,6 +32,7 @@ interface AgendaEntry {
   occasion: string;
   coordinate: { latitude: number; longitude: number };
   color: string;
+  outfitId?: string;
 }
 
 interface OutfitHistoryDetailModalProps {

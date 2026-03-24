@@ -13,7 +13,6 @@ export const MOCK_SOCIAL = {
   outfits_shared_count: 24,
   total_likes_received: 1203,
   bio: 'Fashion lover · Minimalist · Paris 🇫🇷',
-  verification_badge: false,
   is_public: true,
 };
 

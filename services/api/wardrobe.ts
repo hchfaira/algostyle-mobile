@@ -68,4 +68,8 @@ export class WardrobeApiClient extends BaseApiClient {
   async getSmartRemoval(userId: string, profile = 'balanced'): Promise<SmartRemovalResponse> {
     return this.request(`/api/v1/wardrobe/smart-removal?user_id=${userId}&profile=${profile}`);
   }
+
+  async listCustomOutfits(userId: string): Promise<{ outfits: any[]; total: number }> {
+    return this.request(`/api/v1/outfit/list?user_id=${userId}`);
+  }
 }

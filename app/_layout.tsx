@@ -2,15 +2,21 @@
  * Root layout — Expo Router
  * Sets up the navigation stack with the dark fashion theme.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
 import { Colors } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
+import IntroVideoScreen from '../components/IntroVideoScreen';
+
+// Module-level flag: true only after the intro has played in this JS runtime
+// session. Resets to false every time the app process is freshly started.
+let introPlayedThisSession = false;
 
 export default function RootLayout() {
   const { isRestoring, restoreAuth, isAuthenticated, token } = useAppStore();
+  const [showIntro, setShowIntro] = useState(!introPlayedThisSession);
 
   useEffect(() => {
     restoreAuth();
@@ -24,6 +30,16 @@ export default function RootLayout() {
       api.setToken(token);
     }
   }, [token]);
+
+  const handleIntroFinish = () => {
+    introPlayedThisSession = true;
+    setShowIntro(false);
+  };
+
+  // Show the intro video fullscreen before anything else
+  if (showIntro) {
+    return <IntroVideoScreen onFinish={handleIntroFinish} />;
+  }
 
   // Show splash screen while restoring auth state
   if (isRestoring) {

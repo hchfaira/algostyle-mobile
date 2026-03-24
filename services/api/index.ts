@@ -8,6 +8,7 @@ import { WardrobeApiClient } from './wardrobe';
 import { RecommendationApiClient } from './recommendation';
 import { ChatApiClient } from './chat';
 import { ImageConsultingApiClient } from './imageConsulting';
+import { SocialApiClient } from './social';
 
 class UnifiedApiService {
   auth: AuthApiClient;
@@ -16,6 +17,7 @@ class UnifiedApiService {
   recommendation: RecommendationApiClient;
   chat: ChatApiClient;
   imageConsulting: ImageConsultingApiClient;
+  social: SocialApiClient;
 
   constructor() {
     this.auth = new AuthApiClient();
@@ -24,6 +26,7 @@ class UnifiedApiService {
     this.recommendation = new RecommendationApiClient();
     this.chat = new ChatApiClient();
     this.imageConsulting = new ImageConsultingApiClient();
+    this.social = new SocialApiClient();
   }
 
   /**
@@ -36,6 +39,7 @@ class UnifiedApiService {
     this.recommendation.setToken(token);
     this.chat.setToken(token);
     this.imageConsulting.setToken(token);
+    this.social.setToken(token);
   }
 }
 

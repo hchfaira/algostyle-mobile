@@ -279,7 +279,8 @@ function StatPill({ icon, value, label, onPress }: StatPillProps) {
 
 export default function OutfitScreen() {
   const planner              = useOutfitPlanner();
-  const { wardrobe }         = useAppStore();
+  const { wardrobe, userId: storeUserId, addCustomOutfit } = useAppStore();
+  const userId = storeUserId || (__DEV__ ? 'dev-test-user' : null);
   const { width: W }         = useWindowDimensions();
   const [showScore,  setShowScore]  = React.useState(false);
   const [showPrompt, setShowPrompt] = React.useState(false);
@@ -313,6 +314,46 @@ export default function OutfitScreen() {
         onChangePlanningDate={planner.setPlanningDate}
         onChangePlanningLocation={planner.setPlanningLocation}
         onChangePlanningOccasion={planner.setPlanningOccasion}
+        onShareOutfit={(outfit, markShared) => {
+          if (!userId) {
+            Alert.alert('Sign in required', 'Please sign in to share outfits with the community.');
+            return;
+          }
+          Alert.alert(
+            'Publish to People',
+            `Share "${outfit.name}" with the community?`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Publish',
+                onPress: async () => {
+                  try {
+                    const garmentIds = (outfit.garments ?? []).map((g) => g.id);
+                    const res = await api.createCustomOutfit(userId, {
+                      name: outfit.name,
+                      garmentIds,
+                      isPublic: false,
+                      source: 'ai',
+                      aiGrade: outfit.grade,
+                      aiScore: outfit.score?.overall,
+                      explanationBrief: outfit.explanation_brief,
+                    });
+                    if (res.success && res.outfit) {
+                      addCustomOutfit(res.outfit);
+                      await api.publishOutfit(userId, res.outfit.id);
+                      markShared();
+                      Alert.alert('Published! 🎉', `"${outfit.name}" is now live on the People tab.`);
+                    } else {
+                      Alert.alert('Error', 'Could not save the outfit. Please try again.');
+                    }
+                  } catch (err) {
+                    Alert.alert('Error', err instanceof Error ? err.message : 'Could not publish the outfit.');
+                  }
+                },
+              },
+            ],
+          );
+        }}
       />
     );
   }
@@ -457,7 +498,35 @@ export default function OutfitScreen() {
         tryOnImageUrl={planner.selectedOutfitDetail ? planner.virtualTryOns[planner.selectedOutfitDetail.id] : undefined}
         onClose={planner.closeOutfitDetail}
         onTryOn={() => Alert.alert('Virtual Try-On', 'Diffusion-model integration coming soon!')}
-        onShare={(outfit) => Alert.alert('Share', `Sharing "${outfit.outfitName}" to People tab!`)}
+        onShare={async (outfit) => {
+          if (outfit.outfitId) {
+            // Outfit already saved to backend — publish directly
+            Alert.alert(
+              'Publish to People',
+              `Share "${outfit.outfitName}" with the community?`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Publish',
+                  onPress: async () => {
+                    if (!userId) return;
+                    try {
+                      await api.publishOutfit(userId, outfit.outfitId!);
+                      Alert.alert('Published! 🎉', `"${outfit.outfitName}" is now live on the People tab.`);
+                    } catch (err) {
+                      Alert.alert('Error', err instanceof Error ? err.message : 'Could not publish the outfit.');
+                    }
+                  },
+                },
+              ],
+            );
+          } else {
+            Alert.alert(
+              'Cannot Publish',
+              'Only outfits saved from the AI generator can be published to the People tab. Use the share button from the outfit results screen.',
+            );
+          }
+        }}
       />
 
       <AIGenerateOutfitModal
@@ -479,9 +548,32 @@ export default function OutfitScreen() {
           planner.setSelectedOutfitForPlanning(outfit.id);
           planner.setShowAIResultsModal(false);
         }}
-        onShareOutfit={(outfit) => Alert.alert('Share', `Sharing "${outfit.name}" to the People tab!`)}
+        onShareOutfit={async (outfit) => {
+          if (!userId) {
+            setTimeout(() => Alert.alert('Sign in required', 'Please sign in to share outfits with the community.'), 150);
+            throw new Error('not signed in');
+          }
+          const garmentIds = (outfit.garments ?? []).map((g) => g.id);
+          const res = await api.createCustomOutfit(userId, {
+            name: outfit.name,
+            garmentIds,
+            isPublic: false,
+            source: 'ai',
+            aiGrade: outfit.grade,
+            aiScore: outfit.score?.overall,
+            explanationBrief: outfit.explanation_brief,
+          });
+          if (res.success && res.outfit) {
+            addCustomOutfit(res.outfit);
+            await api.publishOutfit(userId, res.outfit.id);
+            setTimeout(() => Alert.alert('Published! 🎉', `"${outfit.name}" is now live on the People tab.`), 150);
+          } else {
+            setTimeout(() => Alert.alert('Error', 'Could not save the outfit. Please try again.'), 150);
+            throw new Error('publish failed');
+          }
+        }}
         onRegeneratePress={() => { planner.setShowAIResultsModal(false); planner.setShowAIGenerateModal(true); }}
-        onRequestDetailedExplanation={async (outfitId) => {
+        onRequestDetailedExplanation={async (outfitId: string) => {
           const target = planner.outfits.find((o) => o.id === outfitId);
           if (!target) return { outfit_id: outfitId, style_notes: [], styling_tips: [] };
           const resp = await api.explainOutfit(target, planner.occasion, planner.scoringProfile, 'detailed');

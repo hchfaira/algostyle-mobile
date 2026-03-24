@@ -23,7 +23,6 @@ export interface SocialMediaProfile {
   outfits_shared_count: number;
   total_likes_received: number;
   bio?: string;
-  verification_badge?: boolean;
   is_public: boolean;
   contact_email?: string;
   instagram_handle?: string;
@@ -73,9 +72,10 @@ export interface UserProfile {
   budget?: string;
   location?: string;
   timezone?: string;
+  bio?: string;
+  is_public?: boolean;
   is_onboarded: boolean;
-  // Social media fields
-  social_profile: SocialMediaProfile;
-  created_at: string; // ISO 8601 timestamp
-  updated_at: string; // ISO 8601 timestamp
+  social_profile?: SocialMediaProfile;
+  created_at: string;
+  updated_at?: string;
 }

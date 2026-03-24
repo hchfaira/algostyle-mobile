@@ -294,6 +294,7 @@ interface OutfitCardProps {
   onShare: (item: OutfitResult) => void;
   onLike: (item: OutfitResult) => void;
   likedIds: Set<string>;
+  sharedIds: Set<string>;
   onRequestDetailed: (item: OutfitResult) => void;
   isLoadingDetailed: boolean;
   llmData?: LLMDetailedData;
@@ -315,6 +316,7 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
   onShare,
   onLike,
   likedIds,
+  sharedIds,
   onRequestDetailed,
   isLoadingDetailed,
   llmData,
@@ -332,15 +334,15 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
       layout={Layout.springify()}
       style={cardStyles.wrapper}
     >
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.985); }}
-        onPressOut={() => { scale.value = withSpring(1); }}
-      >
-        <Animated.View style={[
-          cardStyles.card,
-          index === 0 && cardStyles.cardTop,
-          cardStyle,
-        ]}>
+      <Animated.View style={[
+        cardStyles.card,
+        index === 0 && cardStyles.cardTop,
+        cardStyle,
+      ]}>
+        <Pressable
+          onPressIn={() => { scale.value = withSpring(0.985); }}
+          onPressOut={() => { scale.value = withSpring(1); }}
+        >
           {/* Rank badge */}
           <View style={[cardStyles.rankBadge, { backgroundColor: index === 0 ? Colors.accentWarm : Colors.accent }]}>
             <Text style={cardStyles.rankText}>
@@ -455,35 +457,43 @@ const OutfitCard: React.FC<OutfitCardProps> = ({
             isLoadingDetailed={isLoadingDetailed}
             onRequestDetailed={() => onRequestDetailed(item)}
           />
+        </Pressable>
 
-          {/* Actions */}
-          <View style={cardStyles.actions}>
-            <TouchableOpacity
-              style={[cardStyles.iconBtn, likedIds.has(item.id) && cardStyles.iconBtnActive]}
-              onPress={() => onLike(item)}
-            >
-              <Ionicons
-                name={likedIds.has(item.id) ? 'heart' : 'heart-outline'}
-                size={20}
-                color={likedIds.has(item.id) ? Colors.error : Colors.textPrimary}
-              />
-            </TouchableOpacity>
+        {/* Actions are OUTSIDE the Pressable so they receive their own taps */}
+        <View style={cardStyles.actions}>
+          <TouchableOpacity
+            style={[cardStyles.iconBtn, likedIds.has(item.id) && cardStyles.iconBtnActive]}
+            onPress={() => onLike(item)}
+          >
+            <Ionicons
+              name={likedIds.has(item.id) ? 'heart' : 'heart-outline'}
+              size={20}
+              color={likedIds.has(item.id) ? Colors.error : Colors.textPrimary}
+            />
+          </TouchableOpacity>
 
-            <TouchableOpacity style={cardStyles.iconBtn} onPress={() => onShare(item)}>
-              <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={[cardStyles.iconBtn, sharedIds.has(item.id) && cardStyles.iconBtnShared]}
+            onPress={() => onShare(item)}
+            disabled={sharedIds.has(item.id)}
+          >
+            <Ionicons
+              name={sharedIds.has(item.id) ? 'checkmark-circle' : 'share-outline'}
+              size={20}
+              color={sharedIds.has(item.id) ? Colors.success : Colors.textSecondary}
+            />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={cardStyles.wearBtn}
-              onPress={() => setShowDatePicker(true)}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="checkmark-circle" size={16} color="#FFF" />
-              <Text style={cardStyles.wearBtnText}>WEAR THIS</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </Pressable>
+          <TouchableOpacity
+            style={cardStyles.wearBtn}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="checkmark-circle" size={16} color="#FFF" />
+            <Text style={cardStyles.wearBtnText}>WEAR THIS</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
       {/* Date picker sub-modal */}
       <OutfitDatePickerModal
@@ -696,6 +706,7 @@ const cardStyles = StyleSheet.create({
     borderColor: Colors.border,
   },
   iconBtnActive: { borderColor: Colors.error, backgroundColor: Colors.error + '10' },
+  iconBtnShared: { borderColor: Colors.success, backgroundColor: Colors.success + '10' },
   wearBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -721,7 +732,8 @@ export interface AIOutfitResultsModalProps {
   onClose: () => void;
   /** Called after user picks WEAR THIS + optional date/reminder */
   onWearOutfit: (outfit: OutfitResult, plannedDate: string | null, reminder: ReminderSetting, displayLabel: string) => void;
-  onShareOutfit: (outfit: OutfitResult) => void;
+  /** Called when the user confirms sharing; should perform the publish action and throw on failure */
+  onShareOutfit: (outfit: OutfitResult) => Promise<void>;
   onRegeneratePress: () => void;
   /** Fetch LLM detailed explanation for one outfit */
   onRequestDetailedExplanation?: (outfitId: string) => Promise<LLMDetailedData>;
@@ -740,6 +752,9 @@ export const AIOutfitResultsModal: React.FC<AIOutfitResultsModalProps> = ({
   onRequestDetailedExplanation,
 }) => {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [sharedIds, setSharedIds] = useState<Set<string>>(new Set());
+  const [pendingShareItem, setPendingShareItem] = useState<OutfitResult | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [loadingDetailedId, setLoadingDetailedId] = useState<string | null>(null);
   const [llmDataMap, setLlmDataMap] = useState<Record<string, LLMDetailedData>>({});
 
@@ -751,6 +766,25 @@ export const AIOutfitResultsModal: React.FC<AIOutfitResultsModalProps> = ({
       return next;
     });
   }, []);
+
+  const handleShare = useCallback((item: OutfitResult) => {
+    setPendingShareItem(item);
+  }, []);
+
+  const handleConfirmShare = useCallback(async () => {
+    if (!pendingShareItem) return;
+    const item = pendingShareItem;
+    setIsPublishing(true);
+    setPendingShareItem(null); // close overlay immediately
+    try {
+      await onShareOutfit(item);
+      setSharedIds(prev => new Set(prev).add(item.id));
+    } catch {
+      // error alerting is handled inside onShareOutfit
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [pendingShareItem, onShareOutfit]);
 
   const handleRequestDetailed = useCallback(async (item: OutfitResult) => {
     if (llmDataMap[item.id] || loadingDetailedId || !onRequestDetailedExplanation) return;
@@ -776,6 +810,37 @@ export const AIOutfitResultsModal: React.FC<AIOutfitResultsModalProps> = ({
       }}
     >
       <View style={modalStyles.root}>
+        {/* ── Share Confirmation Overlay ── */}
+        {pendingShareItem && (
+          <View style={modalStyles.shareOverlay}>
+            <View style={modalStyles.shareSheet}>
+              <Ionicons name="share-outline" size={28} color={Colors.accent} style={{ marginBottom: Spacing.sm }} />
+              <Text style={modalStyles.shareTitle}>Publish to Community</Text>
+              <Text style={modalStyles.shareMsg} numberOfLines={2}>
+                Share "{pendingShareItem.name}" on the People tab?
+              </Text>
+              <View style={modalStyles.shareActions}>
+                <TouchableOpacity
+                  style={modalStyles.shareCancelBtn}
+                  onPress={() => setPendingShareItem(null)}
+                  disabled={isPublishing}
+                >
+                  <Text style={modalStyles.shareCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[modalStyles.sharePublishBtn, isPublishing && { opacity: 0.6 }]}
+                  onPress={handleConfirmShare}
+                  disabled={isPublishing}
+                >
+                  {isPublishing
+                    ? <ActivityIndicator size="small" color="#FFF" />
+                    : <Text style={modalStyles.sharePublishText}>Publish</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* ── Header ── */}
         <View style={modalStyles.header}>
           <View style={modalStyles.headerLeft}>
@@ -872,9 +937,10 @@ export const AIOutfitResultsModal: React.FC<AIOutfitResultsModalProps> = ({
                   index={idx}
                   occasion={occasion}
                   onWear={onWearOutfit}
-                  onShare={onShareOutfit}
+                  onShare={handleShare}
                   onLike={handleLike}
                   likedIds={likedIds}
+                  sharedIds={sharedIds}
                   onRequestDetailed={handleRequestDetailed}
                   isLoadingDetailed={loadingDetailedId === outfit.id}
                   llmData={llmDataMap[outfit.id]}
@@ -1024,4 +1090,43 @@ const modalStyles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   emptyRetryText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 1 },
+
+  // ── Share overlay
+  shareOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  shareSheet: {
+    width: '82%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    ...Shadow.lg,
+  },
+  shareTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: Spacing.sm },
+  shareMsg: { fontSize: FontSize.sm, color: Colors.textSecondary, textAlign: 'center', marginBottom: Spacing.lg },
+  shareActions: { flexDirection: 'row', gap: Spacing.md, width: '100%' },
+  shareCancelBtn: {
+    flex: 1,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  shareCancelText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  sharePublishBtn: {
+    flex: 1,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.accent,
+  },
+  sharePublishText: { fontSize: FontSize.sm, fontWeight: FontWeight.black, color: '#FFF', letterSpacing: 0.5 },
 });

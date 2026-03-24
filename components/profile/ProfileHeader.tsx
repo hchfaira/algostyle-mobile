@@ -9,7 +9,8 @@ interface ProfileHeaderProps {
   displayName: string;
   handle: string;
   bio: string;
-  verificationBadge: boolean;
+  outfitsShared: number;
+  likesReceived: number;
   pendingRequestsCount: number;
   onEditBio: () => void;
   onFollowersPress: () => void;
@@ -21,7 +22,8 @@ export function ProfileHeader({
   displayName,
   handle,
   bio,
-  verificationBadge,
+  outfitsShared,
+  likesReceived,
   pendingRequestsCount,
   onEditBio,
   onFollowersPress,
@@ -43,9 +45,6 @@ export function ProfileHeader({
       {/* Name + handle */}
       <View style={styles.nameRow}>
         <Text style={styles.nameText}>{displayName}</Text>
-        {verificationBadge && (
-          <Ionicons name="checkmark-circle" size={18} color={Colors.info} style={{ marginLeft: 6 }} />
-        )}
       </View>
       <Text style={styles.handleText}>@{handle}</Text>
 
@@ -57,13 +56,13 @@ export function ProfileHeader({
 
       {/* Social stats */}
       <View style={styles.socialStats}>
-        <StatPill value={MOCK_SOCIAL.outfits_shared_count} label="Outfits" />
+        <StatPill value={outfitsShared} label="Outfits" />
         <View style={styles.statDivider} />
         <StatPill value={MOCK_SOCIAL.followers_count} label="Followers" onPress={onFollowersPress} />
         <View style={styles.statDivider} />
         <StatPill value={MOCK_SOCIAL.following_count} label="Following" onPress={onFollowingPress} />
         <View style={styles.statDivider} />
-        <StatPill value={MOCK_SOCIAL.total_likes_received} label="Likes" />
+        <StatPill value={likesReceived} label="Likes" />
       </View>
 
       {/* Action buttons */}

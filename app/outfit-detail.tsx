@@ -9,12 +9,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight } from '../constants/theme';
 import { Card, ScoreBar, Button } from '../components/ui';
 import { useAppStore } from '../store/useAppStore';
+import { api } from '../services/api';
 
 const SCORE_LABELS: Record<string, { label: string; color: string }> = {
   color_harmony:  { label: 'Color Harmony',  color: Colors.accent },
@@ -37,8 +39,51 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name
 
 export default function OutfitDetailScreen() {
   const { outfitIndex } = useLocalSearchParams<{ outfitIndex: string }>();
-  const { outfits } = useAppStore();
+  const { outfits, userId, addCustomOutfit } = useAppStore();
   const [showFullExplanation, setShowFullExplanation] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handleShare = () => {
+    if (!outfit) return;
+    Alert.alert(
+      'Publish to People',
+      `Share "${outfit.name}" with the community?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Publish',
+          onPress: async () => {
+            if (!userId) {
+              Alert.alert('Error', 'You must be logged in to publish.');
+              return;
+            }
+            setIsPublishing(true);
+            try {
+              const garmentIds = outfit.garments.map((g) => g.id);
+              const res = await api.createCustomOutfit(userId, {
+                name: outfit.name,
+                garmentIds,
+                isPublic: false,
+                source: 'ai',
+                aiGrade: outfit.grade,
+                aiScore: outfit.score?.overall,
+                explanationBrief: outfit.explanation_brief,
+              });
+              if (res.success && res.outfit) {
+                addCustomOutfit(res.outfit);
+                await api.publishOutfit(userId, res.outfit.id);
+                Alert.alert('Published! 🎉', `"${outfit.name}" is now live on the People tab.`);
+              }
+            } catch (err) {
+              Alert.alert('Error', err instanceof Error ? err.message : 'Could not publish the outfit.');
+            } finally {
+              setIsPublishing(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const idx = parseInt(outfitIndex || '0', 10);
   const outfit = outfits[idx];
@@ -70,8 +115,8 @@ export default function OutfitDetailScreen() {
             <TouchableOpacity style={styles.iconBtn}>
               <Ionicons name="heart-outline" size={20} color={Colors.textPrimary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
+            <TouchableOpacity style={styles.iconBtn} onPress={handleShare} disabled={isPublishing}>
+              <Ionicons name="share-outline" size={20} color={isPublishing ? Colors.textMuted : Colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>

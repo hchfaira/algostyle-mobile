@@ -154,9 +154,29 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
 
       if (response.success && response.outfit) {
         addCustomOutfit(response.outfit);
-        Alert.alert('Saved', `"${outfitName}" saved to your wardrobe!`);
+        const savedId = response.outfit.id;
+        const savedName = outfitName;
         resetForm();
         onClose();
+        // Ask if the user wants to publish to the People feed
+        Alert.alert(
+          'Outfit Saved! 🎉',
+          `"${savedName}" has been saved. Do you want to share it to the People tab?`,
+          [
+            { text: 'Keep Private', style: 'cancel' },
+            {
+              text: 'Publish to People',
+              onPress: async () => {
+                try {
+                  await api.publishOutfit(effectiveUserId!, savedId);
+                  Alert.alert('Published!', `"${savedName}" is now live on the People tab.`);
+                } catch {
+                  Alert.alert('Error', 'Could not publish the outfit. Try again later.');
+                }
+              },
+            },
+          ],
+        );
       }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create outfit');
@@ -197,7 +217,30 @@ export const BuildOutfitModal: React.FC<BuildOutfitModalProps> = ({
           onClose();
           Alert.alert('Outfit Selected', `"${outfit.name}" selected! Schedule it in the Agenda below.`);
         }}
-        onShareOutfit={(outfit) => Alert.alert('Share', `Sharing "${outfit.name}"…`)}
+        onShareOutfit={async (outfit) => {
+          if (!effectiveUserId) {
+            setTimeout(() => Alert.alert('Error', 'You must be logged in to publish.'), 150);
+            throw new Error('not signed in');
+          }
+          const garmentIds = (outfit.garments ?? []).map((g) => g.id);
+          const res = await api.createCustomOutfit(effectiveUserId, {
+            name: outfit.name,
+            garmentIds,
+            isPublic: false,
+            source: 'ai',
+            aiGrade: outfit.grade,
+            aiScore: outfit.score?.overall,
+            explanationBrief: outfit.explanation_brief,
+          });
+          if (res.success && res.outfit) {
+            addCustomOutfit(res.outfit);
+            await api.publishOutfit(effectiveUserId, res.outfit.id);
+            setTimeout(() => Alert.alert('Published! 🎉', `"${outfit.name}" is now live on the People tab.`), 150);
+          } else {
+            setTimeout(() => Alert.alert('Error', 'Could not save the outfit.'), 150);
+            throw new Error('publish failed');
+          }
+        }}
         onRegeneratePress={() => setShowResults(false)}
         onRequestDetailedExplanation={async (outfitId) => {
           const target = scoreResults.find((o) => o.id === outfitId);

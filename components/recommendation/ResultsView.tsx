@@ -1,7 +1,7 @@
 /**
  * ResultsView — Displays generated outfits with planning form & agenda.
  */
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Pressable,
@@ -29,6 +29,7 @@ interface Props {
   onChangePlanningDate: (v: string) => void;
   onChangePlanningLocation: (v: string) => void;
   onChangePlanningOccasion: (v: string) => void;
+  onShareOutfit?: (outfit: OutfitResult, markShared: () => void) => void;
 }
 
 export default function ResultsView({
@@ -36,7 +37,18 @@ export default function ResultsView({
   planningDate, planningLocation, planningOccasion,
   onBack, onSelectOutfit, onSchedule, onRemoveEntry,
   onChangePlanningDate, onChangePlanningLocation, onChangePlanningOccasion,
+  onShareOutfit,
 }: Props) {
+  const [sharedIds, setSharedIds] = useState<Set<string>>(new Set());
+
+  const handleShare = useCallback(
+    (item: OutfitResult) => {
+      if (!onShareOutfit) return;
+      onShareOutfit(item, () => setSharedIds(prev => new Set(prev).add(item.id)));
+    },
+    [onShareOutfit],
+  );
+
   return (
     <View style={styles.container}>
       <TopBar title="Your Outfits" subtitle={`${outfits.length} curated look${outfits.length !== 1 ? 's' : ''}`} />
@@ -106,13 +118,19 @@ export default function ResultsView({
 
         <View style={styles.outfitsContainer}>
           {outfits.map((item, index) => (
-            <Pressable
+            <View
               key={item.id}
-              onPress={() => onSelectOutfit(item.id)}
               style={[styles.cardWrapper, selectedOutfitForPlanning === item.id && styles.cardSelected]}
             >
-              <AnimatedOutfitCard item={item} index={index} />
-            </Pressable>
+              <AnimatedOutfitCard
+                item={item}
+                index={index}
+                onShare={onShareOutfit ? handleShare : undefined}
+                isShared={sharedIds.has(item.id)}
+                onSelect={() => onSelectOutfit(item.id)}
+                isSelected={selectedOutfitForPlanning === item.id}
+              />
+            </View>
           ))}
         </View>
       </ScrollView>

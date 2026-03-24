@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
-import { MOCK_SOCIAL } from './constants';
 
 interface ClosetStatsProps {
   wardrobeCount: number;
   outfitsCount: number;
+  likesReceived: number;
 }
 
-export function ClosetStats({ wardrobeCount, outfitsCount }: ClosetStatsProps) {
+export function ClosetStats({ wardrobeCount, outfitsCount, likesReceived }: ClosetStatsProps) {
   return (
     <View style={styles.closetRow}>
       <View style={styles.closetCard}>
@@ -24,7 +24,7 @@ export function ClosetStats({ wardrobeCount, outfitsCount }: ClosetStatsProps) {
       </View>
       <View style={styles.closetCard}>
         <Ionicons name="heart-outline" size={20} color={Colors.textPrimary} />
-        <Text style={styles.closetValue}>{MOCK_SOCIAL.total_likes_received}</Text>
+        <Text style={styles.closetValue}>{likesReceived}</Text>
         <Text style={styles.closetLabel}>LIKES</Text>
       </View>
     </View>

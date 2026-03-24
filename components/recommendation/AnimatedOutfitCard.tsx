@@ -14,9 +14,13 @@ import type { OutfitResult } from '../../types';
 interface Props {
   item: OutfitResult;
   index: number;
+  onShare?: (item: OutfitResult) => void;
+  onSelect?: () => void;
+  isSelected?: boolean;
+  isShared?: boolean;
 }
 
-export default function AnimatedOutfitCard({ item, index }: Props) {
+export default function AnimatedOutfitCard({ item, index, onShare, onSelect, isSelected, isShared }: Props) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -27,11 +31,15 @@ export default function AnimatedOutfitCard({ item, index }: Props) {
     <Animated.View
       entering={FadeInDown.delay(index * 60).springify().damping(14)}
       layout={Layout.springify().damping(14)}
+      style={isSelected ? styles.selectedWrapper : undefined}
     >
       <Pressable
         onPressIn={() => { scale.value = withSpring(0.97); }}
         onPressOut={() => { scale.value = withSpring(1); }}
-        onPress={() => router.push({ pathname: '/outfit-detail', params: { outfitIndex: index.toString() } })}
+        onPress={() => {
+          onSelect?.();
+          router.push({ pathname: '/outfit-detail', params: { outfitIndex: index.toString() } });
+        }}
       >
         <Animated.View style={[styles.card, animatedStyle]}>
           <View style={styles.rankBadge}>
@@ -71,25 +79,39 @@ export default function AnimatedOutfitCard({ item, index }: Props) {
           </View>
 
           {item.explanation_brief && <Text style={styles.explanation}>{item.explanation_brief}</Text>}
-
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons name="heart-outline" size={20} color={Colors.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons name="share-outline" size={20} color={Colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionBtn, styles.actionBtnWear]}>
-              <Text style={styles.actionWearText}>WEAR THIS</Text>
-            </TouchableOpacity>
-          </View>
         </Animated.View>
       </Pressable>
+
+      {/* Actions are OUTSIDE the Pressable so they receive their own taps */}
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.actionBtn}>
+          <Ionicons name="heart-outline" size={20} color={Colors.textPrimary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionBtn, isShared && styles.actionBtnShared]}
+          onPress={() => !isShared && onShare?.(item)}
+          disabled={isShared}
+        >
+          <Ionicons
+            name={isShared ? 'checkmark-circle' : 'share-outline'}
+            size={20}
+            color={isShared ? Colors.success : Colors.textSecondary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionBtn, styles.actionBtnWear]}>
+          <Text style={styles.actionWearText}>WEAR THIS</Text>
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  selectedWrapper: {
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    borderRadius: BorderRadius.xl,
+  },
   card: {
     backgroundColor: Colors.surface,
     padding: Spacing.lg,
@@ -128,6 +150,7 @@ const styles = StyleSheet.create({
     width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.surfaceLight, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border,
   },
+  actionBtnShared: { borderColor: Colors.success, backgroundColor: Colors.success + '10' },
   actionBtnWear: {
     flexDirection: 'row', width: 'auto', paddingHorizontal: Spacing.xl, height: 44,
     borderRadius: BorderRadius.full, gap: Spacing.sm, marginLeft: 'auto',
