@@ -2,16 +2,18 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
-import { MOCK_SOCIAL, MOCK_SUGGESTIONS } from './constants';
+import type { FollowUserSummary } from '../../services/api/social';
 
 interface FollowListSheetProps {
   mode: 'followers' | 'following' | null;
+  users: FollowUserSummary[];
+  total: number;
   following: Set<string>;
   onToggleFollow: (id: string) => void;
   onClose: () => void;
 }
 
-export function FollowListSheet({ mode, following, onToggleFollow, onClose }: FollowListSheetProps) {
+export function FollowListSheet({ mode, users, total, following, onToggleFollow, onClose }: FollowListSheetProps) {
   return (
     <Modal visible={!!mode} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
@@ -21,32 +23,41 @@ export function FollowListSheet({ mode, following, onToggleFollow, onClose }: Fo
             <Text style={styles.sheetTitle}>
               {mode === 'followers' ? 'FOLLOWERS' : 'FOLLOWING'}{' '}
               <Text style={{ color: Colors.textMuted, fontWeight: FontWeight.regular }}>
-                {mode === 'followers' ? MOCK_SOCIAL.followers_count : MOCK_SOCIAL.following_count}
+                {total}
               </Text>
             </Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={22} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
-          {MOCK_SUGGESTIONS.map((u) => (
-            <View key={u.id} style={styles.requestRow}>
-              <View style={styles.personAvatar}>
-                <Ionicons name="person" size={18} color="#FFF" />
-              </View>
-              <View style={styles.personInfo}>
-                <Text style={styles.personName}>{u.name}</Text>
-                <Text style={styles.personHandle}>{u.handle}</Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.followBtn, following.has(u.id) && styles.followBtnActive]}
-                onPress={() => onToggleFollow(u.id)}
-              >
-                <Text style={[styles.followBtnText, following.has(u.id) && styles.followBtnTextActive]}>
-                  {following.has(u.id) ? 'FOLLOWING' : 'FOLLOW'}
-                </Text>
-              </TouchableOpacity>
+          {users.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={36} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>
+                {mode === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
+              </Text>
             </View>
-          ))}
+          ) : (
+            users.map((u) => (
+              <View key={u.user_id} style={styles.requestRow}>
+                <View style={styles.personAvatar}>
+                  <Ionicons name="person" size={18} color="#FFF" />
+                </View>
+                <View style={styles.personInfo}>
+                  <Text style={styles.personName}>{u.name}</Text>
+                  <Text style={styles.personHandle}>{u.handle}</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.followBtn, following.has(u.user_id) && styles.followBtnActive]}
+                  onPress={() => onToggleFollow(u.user_id)}
+                >
+                  <Text style={[styles.followBtnText, following.has(u.user_id) && styles.followBtnTextActive]}>
+                    {following.has(u.user_id) ? 'FOLLOWING' : 'FOLLOW'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
           <View style={{ height: 32 }} />
         </Pressable>
       </Pressable>
@@ -84,4 +95,6 @@ const styles = StyleSheet.create({
   followBtnActive: { backgroundColor: Colors.textPrimary },
   followBtnText: { fontSize: 11, fontWeight: FontWeight.bold, color: Colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
   followBtnTextActive: { color: '#FFF' },
+  emptyState: { alignItems: 'center', paddingVertical: Spacing.xxl, gap: Spacing.md },
+  emptyText: { fontSize: FontSize.md, color: Colors.textMuted },
 });

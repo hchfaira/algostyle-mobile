@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
 import { StatPill } from './StatPill';
-import { MOCK_SOCIAL } from './constants';
 
 interface ProfileHeaderProps {
   displayName: string;
@@ -11,6 +10,8 @@ interface ProfileHeaderProps {
   bio: string;
   outfitsShared: number;
   likesReceived: number;
+  followersCount: number;
+  followingCount: number;
   pendingRequestsCount: number;
   onEditBio: () => void;
   onFollowersPress: () => void;
@@ -24,6 +25,8 @@ export function ProfileHeader({
   bio,
   outfitsShared,
   likesReceived,
+  followersCount,
+  followingCount,
   pendingRequestsCount,
   onEditBio,
   onFollowersPress,
@@ -58,9 +61,9 @@ export function ProfileHeader({
       <View style={styles.socialStats}>
         <StatPill value={outfitsShared} label="Outfits" />
         <View style={styles.statDivider} />
-        <StatPill value={MOCK_SOCIAL.followers_count} label="Followers" onPress={onFollowersPress} />
+        <StatPill value={followersCount} label="Followers" onPress={onFollowersPress} />
         <View style={styles.statDivider} />
-        <StatPill value={MOCK_SOCIAL.following_count} label="Following" onPress={onFollowingPress} />
+        <StatPill value={followingCount} label="Following" onPress={onFollowingPress} />
         <View style={styles.statDivider} />
         <StatPill value={likesReceived} label="Likes" />
       </View>

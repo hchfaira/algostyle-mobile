@@ -5,7 +5,6 @@ import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../const
 import {
   ProfileHeader,
   ClosetStats,
-  SuggestedPeople,
   SettingsMenu,
   StyleDNA,
   FollowRequestsSheet,
@@ -23,8 +22,10 @@ export default function ProfileScreen() {
         displayName={p.displayName}
         handle={p.handle}
         bio={p.bio}
-        outfitsShared={p.outfitsShared}
+        outfitsShared={p.outfitsCount}
         likesReceived={p.likesReceived}
+        followersCount={p.followersCount}
+        followingCount={p.followingCount}
         pendingRequestsCount={p.pendingRequests.length}
         onEditBio={p.openEditBio}
         onFollowersPress={() => p.setShowFollowSheet('followers')}
@@ -33,8 +34,6 @@ export default function ProfileScreen() {
       />
 
       <ClosetStats wardrobeCount={p.wardrobeCount} outfitsCount={p.outfitsCount} likesReceived={p.likesReceived} />
-
-      <SuggestedPeople following={p.following} onToggleFollow={p.toggleFollow} />
 
       <SettingsMenu menuItems={p.menuItems} />
 
@@ -57,6 +56,8 @@ export default function ProfileScreen() {
       />
       <FollowListSheet
         mode={p.showFollowSheet}
+        users={p.showFollowSheet === 'followers' ? p.followersList : p.followingList}
+        total={p.showFollowSheet === 'followers' ? p.followersCount : p.followingCount}
         following={p.following}
         onToggleFollow={p.toggleFollow}
         onClose={() => p.setShowFollowSheet(null)}

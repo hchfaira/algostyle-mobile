@@ -42,6 +42,57 @@ export interface UserStats {
   likes_received: number;
 }
 
+export interface FollowResponse {
+  status: string; // accepted | pending | unfollowed
+  followers_count: number;
+  following_count: number;
+}
+
+export interface FollowUserSummary {
+  user_id: string;
+  name: string;
+  handle: string;
+  bio?: string;
+  is_following: boolean;
+}
+
+export interface FollowListResponse {
+  users: FollowUserSummary[];
+  total: number;
+}
+
+export interface FollowRequestItem {
+  id: string;
+  from_user_id: string;
+  name: string;
+  handle: string;
+  mutuals: number;
+  created_at?: string;
+}
+
+export interface FollowRequestsResponse {
+  requests: FollowRequestItem[];
+  total: number;
+}
+
+export interface FollowCounts {
+  followers_count: number;
+  following_count: number;
+}
+
+export interface UserSearchResult {
+  user_id: string;
+  name: string;
+  handle: string;
+  bio?: string;
+  is_following: boolean;
+}
+
+export interface UserSearchResponse {
+  users: UserSearchResult[];
+  total: number;
+}
+
 export class SocialApiClient extends BaseApiClient {
   async getUserStats(userId: string): Promise<UserStats> {
     return this.request(`/api/v1/social/stats/${userId}`);
@@ -61,6 +112,52 @@ export class SocialApiClient extends BaseApiClient {
     return this.request(`/api/v1/social/posts/${outfitId}/save?user_id=${userId}`, {
       method: 'POST',
     });
+  }
+
+  async followUser(userId: string, targetUserId: string): Promise<FollowResponse> {
+    return this.request(`/api/v1/social/users/${targetUserId}/follow?user_id=${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async unfollowUser(userId: string, targetUserId: string): Promise<FollowResponse> {
+    return this.request(`/api/v1/social/users/${targetUserId}/unfollow?user_id=${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async getFollowers(userId: string, currentUserId: string): Promise<FollowListResponse> {
+    return this.request(`/api/v1/social/users/${userId}/followers?current_user_id=${currentUserId}`);
+  }
+
+  async getFollowing(userId: string, currentUserId: string): Promise<FollowListResponse> {
+    return this.request(`/api/v1/social/users/${userId}/following?current_user_id=${currentUserId}`);
+  }
+
+  async getFollowCounts(userId: string): Promise<FollowCounts> {
+    return this.request(`/api/v1/social/users/${userId}/follow-counts`);
+  }
+
+  async getFollowRequests(userId: string): Promise<FollowRequestsResponse> {
+    return this.request(`/api/v1/social/follow-requests?user_id=${userId}`);
+  }
+
+  async acceptFollowRequest(userId: string, requestId: string): Promise<FollowResponse> {
+    return this.request(`/api/v1/social/follow-requests/${requestId}/accept?user_id=${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async declineFollowRequest(userId: string, requestId: string): Promise<FollowResponse> {
+    return this.request(`/api/v1/social/follow-requests/${requestId}/decline?user_id=${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async searchUsers(query: string, currentUserId: string, limit = 20): Promise<UserSearchResponse> {
+    return this.request(
+      `/api/v1/social/users/search?q=${encodeURIComponent(query)}&current_user_id=${currentUserId}&limit=${limit}`,
+    );
   }
 }
 

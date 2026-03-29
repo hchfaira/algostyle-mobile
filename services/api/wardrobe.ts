@@ -70,6 +70,6 @@ export class WardrobeApiClient extends BaseApiClient {
   }
 
   async listCustomOutfits(userId: string): Promise<{ outfits: any[]; total: number }> {
-    return this.request(`/api/v1/outfit/list?user_id=${userId}`);
+    return this.request(`/api/v1/outfits/list?user_id=${userId}`);
   }
 }
