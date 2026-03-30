@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../store/useAppStore';
 import type { MenuItemDef } from '../components/profile/constants';
@@ -83,10 +83,17 @@ export function useProfile() {
   const handle = (profile?.name ?? userId ?? 'user').toLowerCase().replace(/\s+/g, '_').slice(0, 16);
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => { logout(); clearChat(); router.replace('/'); } },
-    ]);
+    const doLogout = () => { logout(); clearChat(); router.replace('/'); };
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: doLogout },
+      ]);
+    }
   }, [logout, clearChat, router]);
 
   const openEditBio = useCallback(() => {

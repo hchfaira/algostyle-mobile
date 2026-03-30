@@ -22,6 +22,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors, Spacing, FontSize, FontWeight } from '../../constants/theme';
+import { useAppStore } from '../../store/useAppStore';
 
 interface TopBarProps {
   /** Main screen title — shown on the left */
@@ -32,10 +33,13 @@ interface TopBarProps {
   favoriteCount?: number;
   /** Badge count for Cart icon */
   cartCount?: number;
+  /** Badge count for Notification bell */
+  notificationCount?: number;
   /** Hide one or more action icons */
   hideProfile?: boolean;
   hideFavorites?: boolean;
   hideCart?: boolean;
+  hideNotifications?: boolean;
 }
 
 export function TopBar({
@@ -43,11 +47,15 @@ export function TopBar({
   subtitle,
   favoriteCount = 0,
   cartCount = 0,
+  notificationCount = 0,
   hideProfile = false,
   hideFavorites = false,
   hideCart = false,
+  hideNotifications = false,
 }: TopBarProps) {
   const router = useRouter();
+  const storeUnreadCount = useAppStore((s) => s.unreadCount);
+  const effectiveNotificationCount = notificationCount || storeUnreadCount;
 
   return (
     <View style={styles.container}>
@@ -59,7 +67,15 @@ export function TopBar({
 
       {/* ── Right: Action icons ── */}
       <View style={styles.actions}>
-        {!hideFavorites && (
+        {!hideNotifications && (
+          <ActionIcon
+            icon="notifications-outline"
+            badge={effectiveNotificationCount}
+            onPress={() => router.push('/(tabs)/notifications' as any)}
+            accessibilityLabel="Notifications"
+          />
+        )}
+        {hideFavorites && (
           <ActionIcon
             icon="heart-outline"
             badge={favoriteCount}
@@ -67,7 +83,7 @@ export function TopBar({
             accessibilityLabel="Favourites"
           />
         )}
-        {!hideCart && (
+        {hideCart && (
           <ActionIcon
             icon="bag-outline"
             badge={cartCount}

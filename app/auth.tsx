@@ -11,7 +11,6 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,14 +28,33 @@ export default function AuthScreen() {
   const [role, setRole] = useState<UserRole>('user');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const { setAuth } = useAppStore();
 
-  const handleSubmit = async () => {
-    if (!email || !password) {
-      Alert.alert('Missing Fields', 'Please enter email and password');
-      return;
+  const validate = (): boolean => {
+    const errors: typeof fieldErrors = {};
+    if (mode === 'register' && !name.trim()) {
+      errors.name = 'Name is required';
     }
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = 'Enter a valid email address';
+    }
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    setError('');
+    if (!validate()) return;
     setLoading(true);
     try {
       let res;
@@ -53,13 +71,14 @@ export default function AuthScreen() {
         router.replace('/(tabs)/wardrobe');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Something went wrong');
+      setError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGuest = async () => {
+    setError('');
     setLoading(true);
     try {
       const res = await api.guestLogin();
@@ -67,7 +86,7 @@ export default function AuthScreen() {
       setAuth(res);
       router.replace('/onboarding');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Something went wrong');
+      setError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -124,46 +143,57 @@ export default function AuthScreen() {
             </View>
           )}
 
+          {/* Error banner */}
+          {error !== '' && (
+            <TouchableOpacity style={styles.errorBanner} onPress={() => setError('')}>
+              <Ionicons name="alert-circle" size={18} color="#fff" />
+              <Text style={styles.errorText}>{error}</Text>
+              <Ionicons name="close" size={16} color="#fff" />
+            </TouchableOpacity>
+          )}
+
           {/* Form */}
           <View style={styles.form}>
             {mode === 'register' && (
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>NAME</Text>
-                <View style={styles.inputWrapper}>
+                <View style={[styles.inputWrapper, fieldErrors.name ? styles.inputWrapperError : undefined]}>
                   <TextInput
                     style={styles.input}
                     value={name}
-                    onChangeText={setName}
+                    onChangeText={(v) => { setName(v); setFieldErrors((e) => ({ ...e, name: undefined })); }}
                     placeholder="Your name"
                     placeholderTextColor={Colors.textMuted}
                     autoCapitalize="words"
                   />
                 </View>
+                {fieldErrors.name && <Text style={styles.fieldError}>{fieldErrors.name}</Text>}
               </View>
             )}
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, fieldErrors.email ? styles.inputWrapperError : undefined]}>
                 <TextInput
                   style={styles.input}
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(v) => { setEmail(v); setFieldErrors((e) => ({ ...e, email: undefined })); }}
                   placeholder="hello@example.com"
                   placeholderTextColor={Colors.textMuted}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
+              {fieldErrors.email && <Text style={styles.fieldError}>{fieldErrors.email}</Text>}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>PASSWORD</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, fieldErrors.password ? styles.inputWrapperError : undefined]}>
                 <TextInput
                   style={styles.input}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(v) => { setPassword(v); setFieldErrors((e) => ({ ...e, password: undefined })); }}
                   placeholder="••••••••"
                   placeholderTextColor={Colors.textMuted}
                   secureTextEntry={!showPassword}
@@ -176,6 +206,7 @@ export default function AuthScreen() {
                   />
                 </TouchableOpacity>
               </View>
+              {fieldErrors.password && <Text style={styles.fieldError}>{fieldErrors.password}</Text>}
             </View>
 
             <Button
@@ -286,6 +317,21 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textMuted,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: '#D32F2F',
+    borderRadius: BorderRadius.sm,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  errorText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+  },
   form: { gap: Spacing.md, marginBottom: Spacing.lg },
   inputGroup: { gap: Spacing.xs },
   inputLabel: {
@@ -305,10 +351,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     height: 50,
   },
+  inputWrapperError: {
+    borderColor: '#D32F2F',
+  },
   input: {
     flex: 1,
     color: Colors.textPrimary,
     fontSize: FontSize.md,
+  },
+  fieldError: {
+    color: '#D32F2F',
+    fontSize: FontSize.xs,
+    marginTop: 2,
   },
   divider: {
     flexDirection: 'row',

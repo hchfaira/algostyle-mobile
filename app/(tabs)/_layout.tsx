@@ -13,8 +13,11 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSize, FontWeight } from '../../constants/theme';
 import SideTabAI from '../../components/SideTabAI';
+import { useNotificationPoller } from '../../hooks/useNotificationPoller';
 
 export default function TabLayout() {
+  useNotificationPoller();
+
   return (
     <View style={{ flex: 1 }}>
       <Tabs
@@ -87,6 +90,12 @@ export default function TabLayout() {
           name="chat"
           options={{
             href: null, // hidden — replaced by SideTabAI side tab
+          }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            href: null, // hidden from tab bar — accessed via TopBar bell icon
           }}
         />
         <Tabs.Screen

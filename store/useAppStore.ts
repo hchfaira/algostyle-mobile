@@ -9,6 +9,7 @@ import { createRecommendationsSlice, type RecommendationsState } from './slices/
 import { createOutfitsSlice, type OutfitsState } from './slices/outfits';
 import { createChatSlice, type ChatState } from './slices/chat';
 import { createImageConsultingSlice, type ImageConsultingState } from './slices/imageConsulting';
+import { createNotificationsSlice, type NotificationsState } from './slices/notifications';
 
 export type AppState = AuthState &
   ProfileState &
@@ -16,7 +17,8 @@ export type AppState = AuthState &
   RecommendationsState &
   OutfitsState &
   ChatState &
-  ImageConsultingState & {
+  ImageConsultingState &
+  NotificationsState & {
     logout: () => void;
   };
 
@@ -28,6 +30,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   ...createOutfitsSlice(set, get),
   ...createChatSlice(set),
   ...createImageConsultingSlice(set),
+  ...createNotificationsSlice(set),
 
   // Global logout that resets all slices
   logout: () =>
@@ -54,5 +57,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       consultingResult: null,
       isLoadingConsulting: false,
       consultingError: null,
+      // Notifications
+      notifications: [],
+      unreadCount: 0,
     }),
 }));

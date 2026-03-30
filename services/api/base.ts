@@ -30,8 +30,18 @@ export class BaseApiClient {
 
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
-      const errorBody = await res.text();
-      throw new Error(`API Error ${res.status}: ${errorBody}`);
+      let message = `Request failed (${res.status})`;
+      try {
+        const errorBody = await res.json();
+        if (errorBody.detail) {
+          message = typeof errorBody.detail === 'string'
+            ? errorBody.detail
+            : JSON.stringify(errorBody.detail);
+        }
+      } catch {
+        // response wasn't JSON — keep generic message
+      }
+      throw new Error(message);
     }
     return res.json();
   }

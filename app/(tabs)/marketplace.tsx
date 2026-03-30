@@ -7,7 +7,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  ScrollView, TextInput, RefreshControl,
+  ScrollView, TextInput, RefreshControl, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../constants/theme';
@@ -211,6 +211,17 @@ export default function MarketplaceScreen() {
         onClose={() => setShowDetailModal(false)}
         onToggleFav={filters.toggleFav}
       />
+
+      {/* Coming Soon overlay */}
+      <View style={styles.overlay}>
+        <View style={styles.overlayCard}>
+          <Ionicons name="bag-handle-outline" size={48} color={Colors.accent} />
+          <Text style={styles.overlayTitle}>COMING SOON</Text>
+          <Text style={styles.overlayDesc}>
+            The marketplace is under construction.{"\n"}Stay tuned!
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -218,6 +229,38 @@ export default function MarketplaceScreen() {
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(6px)' } as any : {}),
+  },
+  overlayCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.xl,
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginHorizontal: Spacing.xl,
+    width: '85%',
+    maxWidth: 340,
+  },
+  overlayTitle: {
+    fontSize: FontSize.xxl,
+    fontWeight: FontWeight.black,
+    color: Colors.textPrimary,
+    letterSpacing: 2,
+  },
+  overlayDesc: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
 
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
